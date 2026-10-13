@@ -1,0 +1,88 @@
+//@version=5
+strategy("avi_regV2_Strategy (intraday)", shorttitle="avi_regV2", overlay=false,
+         initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1,
+         commission_type=strategy.commission.cash_per_order,
+         commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+
+// --- Inputs ---
+srcMode    = input.string("OBV (built-in)", "Primary source", options=["OBV (built-in)", "Custom"],
+             tooltip="input.source cannot pick OBV unless an OBV indicator is on the chart, so OBV is computed here.")
+src1_custom = input.source(close, "Primary custom source (when Custom)")
+src2_input = input.source(close, "Secondary Source (e.g., Price)")
+len        = input.int(100, "Lookback Period", minval=10)
+modeIn     = input.string("Intraday", "Mode", options=["Intraday", "Interday"])
+sideIn     = input.string("Both", "Side", options=["Both", "Long only", "Short only"])
+sqHHMM     = input.int(1515, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530)
+cutHHMM    = input.int(1500, "Intraday: no new entries from (IST hhmm, bar close)", minval=900, maxval=1530)
+
+obv = ta.cum(math.sign(ta.change(close)) * volume)
+src1_input = srcMode == "OBV (built-in)" ? obv : src1_custom
+
+// --- Normalization ---
+normalize(_src, _len) =>
+    _hi = ta.highest(_src, _len)
+    _lo = ta.lowest(_src, _len)
+    _norm = ((_src - _lo) / math.max(_hi - _lo, 0.00001)) * 100
+    math.min(math.max(_norm, 0), 100)
+
+norm1 = normalize(src1_input, len)
+norm2 = normalize(src2_input, len)
+
+// --- Regression Logic ---
+reg1_vis = ta.linreg(norm1, len, 0)
+reg2_vis = ta.linreg(norm2, len, 0)
+
+// --- Momentum Logic ---
+// linreg(x, len, 0) - linreg(x, len, 1) is the regression slope; the
+// previous bar's slope is the same series one bar back.
+slope1 = reg1_vis - ta.linreg(norm1, len, 1)
+slope2 = reg2_vis - ta.linreg(norm2, len, 1)
+prim_is_accel = slope1 > slope1[1]
+sec_is_accel  = slope2 > slope2[1]
+
+// --- Conditions ---
+bullCondition = prim_is_accel and sec_is_accel
+bearCondition = not prim_is_accel and not sec_is_accel
+
+bullEntry = bullCondition and not bullCondition[1]
+bullExit  = not bullCondition and bullCondition[1]
+bearEntry = bearCondition and not bearCondition[1]
+bearExit  = not bearCondition and bearCondition[1]
+
+// --- Session rules ---
+isIntraday  = modeIn == "Intraday"
+hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
+atSquareOff = isIntraday and hhmmClose >= sqHHMM
+canEnter    = not isIntraday or hhmmClose < cutHHMM
+// Safety net for short sessions (e.g. Muhurat) or missing bars.
+staleCarry  = isIntraday and timeframe.change("D") and strategy.position_size != 0
+wantLong    = sideIn != "Short only"
+wantShort   = sideIn != "Long only"
+
+// --- Strategy Execution Logic ---
+if atSquareOff
+    // Fill on this bar's close, not the next bar's open (= next morning).
+    strategy.close_all(comment="square-off", immediately=true)
+else
+    if staleCarry
+        strategy.close_all(comment="stale carry", immediately=true)
+    if bullExit
+        strategy.close("Bull Long", comment="Trend Break")
+    if bearExit
+        strategy.close("Bear Short", comment="Trend Break")
+    if bullEntry and wantLong and canEnter
+        strategy.entry("Bull Long", strategy.long)
+    if bearEntry and wantShort and canEnter
+        strategy.entry("Bear Short", strategy.short)
+
+// --- Visuals ---
+hline(0, "Min", color=color.new(color.gray, 50))
+hline(100, "Max", color=color.new(color.gray, 50))
+
+plot(reg1_vis, "Primary", color = (prim_is_accel ? color.green : color.red), linewidth=3)
+plot(reg2_vis, "Secondary", color = (sec_is_accel ? color.lime : color.fuchsia), linewidth=2)
+
+plotshape(bullEntry ? 0 : na, "Bull Entry", shape.labelup, location.absolute, color.green, text="BULL ENTER", textcolor=color.white, size=size.small)
+plotshape(bullExit ? 100 : na, "Bull Exit", shape.labeldown, location.absolute, color.green, text="BULL EXIT", textcolor=color.white, size=size.small)
+plotshape(bearEntry ? 100 : na, "Bear Entry", shape.labeldown, location.absolute, color.fuchsia, text="BEAR ENTER", textcolor=color.white, size=size.small)
+plotshape(bearExit ? 0 : na, "Bear Exit", shape.labelup, location.absolute, color.fuchsia, text="BEAR EXIT", textcolor=color.white, size=size.small)
