@@ -60,6 +60,7 @@ more than half the months profitable, both sides profitable.
 | E08 | 2026-10-13 | original | 30m, 2020-01-01 → 2026-10-13 | as-is (both sources = close), 100% equity, no cost | 1,365 | +21,834 | 1.32 | −3,284 | PASS (pre-cost) | `E08_avi_regV2_original_30m.csv` |
 | E09 | 2026-10-13 | dev interday `fcb6740` | 30m, same period | defaults (price/price), 1 unit, cost 1 pt | 1,365 | +20,469 | 1.29 | −3,397 | MIXED (PF just < 1.3) | `E09_avi_regV2_interday-dev_30m.csv` |
 | E12 | 2026-10-13 | dev intraday (Mode = Intraday) | 30m, same period | price/price, 15:15 square-off, 15:00 cutoff, cost 1 pt | 1,175 | +5,627 | 1.20 | −2,199 | MIXED | `E12_avi_regV2_intraday-dev_30m.csv` |
+| E15 | 2026-10-13 | dev regime `pine/dev/avi_regV2_Strategy.regime.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | interday, price/price, daily ADX(14) > 20 for entries, kill switch off, cost 1 pt | 867 | +11,808 | 1.27 | −3,416 | FAIL | `E15_avi_regV2_regime-adx_30m.csv` |
 
 ### Analyses / findings
 
@@ -73,6 +74,8 @@ more than half the months profitable, both sides profitable.
 | A14 | E12, E09 | **Equity-curve filter** (trade only while strategy equity ≥ its N-trade MA, N=10/20/50), simulated from trade lists. Intraday: maxDD −2,199 → −1,557 at best but net −34% (+3,726). Interday: worse for N=10/20 (maxDD ≈ −4,050, net −75…−90%); N=50 ≈ same DD, net −29%. Does not prevent drawdowns. | FAIL |
 | A15 | E12 | **Year-by-year (intraday):** 2020 +1,611 · 2021 +1,106 · 2022 +86 · 2023 +82 · 2024 +2,525 · 2025 −1,431 · 2026 +1,648. Extra slippage: +1 pt → +4,452, +2 → +3,277, +4 → +927. Exit split (square-off +19,748 vs Trend Break −14,113) is survivorship by construction, not a filter (see A08). | INFO |
 | A16 | E12 | **Max DD anatomy (intraday):** peak 2025-05-20 (+5,625) → trough 2026-01-27 (+3,426) = −2,199 over 116 trades; recovered only 2026-10-13 (~17 months under water). Monthly: May −162, Jun −334, Jul +25, Aug −165, Sep −117, Oct −40, Nov −325, Dec −528, Jan −553 (8/9 red). Both sides lost (L −1,395 / S −804), win% 36, longest losing streak 8, worst days 14-Nov-25 −346, 27-Jan-26 −298, 23-Jan-26 −230. Second DD −1,741 from May-2022 to Apr-2024 (~2 years). On 1 futures lot (75) −2,199 pts ≈ ₹1.65 lakh. Both DDs = choppy, trendless regimes. | INFO |
+| A17 | E15 vs E09 | **Daily ADX(14) > 20 regime filter does not reduce drawdown.** Full period: trades 1,365 → 867, net +20,469 → +11,808 (−42%), PF 1.29 → 1.27, maxDD −3,397 → −3,416 (unchanged; now 2022-03 → 2022-11, recovered 2024-09). 2022 got worse (+190 → −1,049): ADX called 2022 'trending' while the signal whipsawed. Out-of-sample 2024–26 (R5): net +11,221 → +7,306, PF 1.36 → 1.44, maxDD −3,397 → −2,056; return/DD 3.3 → 3.6, a marginal gain that does not justify 35–42% less profit. Decision: keep E09 interday as baseline; do not tune ADX values (would be overfitting). | FAIL |
+| A18 | E09 | Correction/detail: the interday (E09) max DD is −3,397 from 2025-11-14 to 2026-04-07 (113 trades), recovered 2026-10-01. In-sample 2020–23: +9,248, PF 1.24; out-of-sample 2024–26: +11,221, PF 1.36 (edge held up in the later period). | INFO |
 
 ### Risk-management guidelines (decided 2026-10-13)
 | ID | Guideline | Basis |
@@ -91,4 +94,4 @@ more than half the months profitable, both sides profitable.
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
 | E14 | Out-of-sample check on another index (e.g. BANKNIFTY) with unchanged settings | PENDING |
-| E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. Script: `pine/dev/avi_regV2_Strategy.regime.dev.pine` (daily ADX(14) > 20, fixed in advance; kill switch off by default). | READY TO RUN |
+| E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. Script: `pine/dev/avi_regV2_Strategy.regime.dev.pine` (daily ADX(14) > 20, fixed in advance; kill switch off by default). | DONE — FAIL (A17) |

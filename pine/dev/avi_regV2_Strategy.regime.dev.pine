@@ -1,6 +1,6 @@
 // ============================================================================
 // TAG:          DEV
-// STATUS:       NOT YET TESTED (experiment E15)
+// STATUS:       REJECTED (E15: no drawdown reduction, -42% profit; see LOG A17)
 // NAME:         avi_regV2_Strategy (interday + regime filter)
 // FILE:         pine/dev/avi_regV2_Strategy.regime.dev.pine
 // DERIVED FROM: pine/dev/avi_regV2_Strategy.interday.dev.pine
@@ -16,7 +16,9 @@
 //                  new trades. 0 = off (default, so backtests stay comparable).
 // HYPOTHESIS:   Both long drawdowns (2022-24, May-2025..Jan-2026) were choppy,
 //               trendless markets (A16); skipping entries there should cut DD.
-// TEST PLAN:    30m, 2020-2026. Compare with E09. Judge on 2024-2026 only.
+// TESTED:       30m, 2020-2026, cost 1 pt (E15): 867 trades, +11,808 pts, PF 1.27,
+//               maxDD -3,416 (E09 without filter: +20,469, PF 1.29, -3,397).
+//               2024-26: +7,306, PF 1.44, DD -2,056 vs E09 +11,221, 1.36, -3,397.
 // ============================================================================
 //@version=5
 strategy("avi_regV2_Strategy (interday + regime)", shorttitle="avi_regV2_R", overlay=false, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
