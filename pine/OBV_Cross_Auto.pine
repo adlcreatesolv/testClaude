@@ -9,10 +9,12 @@ length1 = input.int(34, "OBV SMA 1",  minval=1)
 length2 = input.int(55, "OBV SMA 2",  minval=1)
 modeIn  = input.string("Intraday", "Mode", options=["Intraday", "Interday"])
 sideIn  = input.string("Both", "Side", options=["Both", "CE only (long)", "PE only (short)"])
-useSL   = input.bool(false, "Stop at signal-bar extreme (CE: low, PE: high)")
+useSL   = input.bool(false, "Stop at signal extreme (CE: lowest low, PE: highest high since flip)")
 sqHHMM  = input.int(1515, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530)
 cutHHMM = input.int(1500, "Intraday: no new entries from (IST hhmm, bar close)", minval=900, maxval=1530,
          tooltip="Signals on bars closing at or after this time only exit; they do not open a new trade. Set equal to the square-off time to disable.")
+confirmN = input.int(2, "Entry confirmation bars", minval=0,
+         tooltip="Enter only after the OBV state has held for this many bars after the flip bar. 0 = enter on the flip bar (original behaviour). Exits still happen on the flip itself.")
 
 obv  = ta.cum(math.sign(ta.change(close)) * volume)
 sma  = ta.sma(close, length)
@@ -27,6 +29,15 @@ else
 
 bullSignal = buyFlag == 1.0 and buyFlag[1] == 0.0   // TE_BUY_CE
 bearSignal = buyFlag == 0.0 and buyFlag[1] == 1.0   // TE_BUY_PE
+
+// Confirmed entries: the flip happened exactly confirmN bars ago and the
+// state has not changed since (barssince is 0 on the flip bar itself).
+barsSinceFlip = ta.barssince(buyFlag != buyFlag[1])
+confirmCE = buyFlag == 1.0 and barsSinceFlip == confirmN
+confirmPE = buyFlag == 0.0 and barsSinceFlip == confirmN
+// Stop = extreme from the flip bar through the confirmation bar.
+lowSinceFlip  = ta.lowest(low,  confirmN + 1)
+highSinceFlip = ta.highest(high, confirmN + 1)
 
 isIntraday  = modeIn == "Intraday"
 hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
@@ -52,11 +63,11 @@ else
         strategy.close("CE", comment="OBV stack off")
     if bullSignal
         strategy.close("PE", comment="OBV stack on")
-    if bullSignal and wantCE and canEnter
-        slCE := low
+    if confirmCE and wantCE and canEnter
+        slCE := lowSinceFlip
         strategy.entry("CE", strategy.long, comment="TE_BUY_CE")
-    if bearSignal and wantPE and canEnter
-        slPE := high
+    if confirmPE and wantPE and canEnter
+        slPE := highSinceFlip
         strategy.entry("PE", strategy.short, comment="TE_BUY_PE")
 if useSL and not atSquareOff
     if not na(slCE)
@@ -67,6 +78,8 @@ if useSL and not atSquareOff
 bgcolor(buyFlag == 1.0 ? color.new(color.green, 90) : na)
 plotshape(bullSignal, "TE_BUY_CE", shape.triangleup,   location.belowbar, color.green, size=size.tiny)
 plotshape(bearSignal, "TE_BUY_PE", shape.triangledown, location.abovebar, color.red,   size=size.tiny)
+plotshape(confirmN > 0 and confirmCE, "CE confirmed", shape.circle, location.belowbar, color.green, size=size.tiny)
+plotshape(confirmN > 0 and confirmPE, "PE confirmed", shape.circle, location.abovebar, color.red,   size=size.tiny)
 plot(obv,  "OBV",      display=display.data_window)
 plot(sma1, "OBV_SMA1", display=display.data_window)
 plot(sma2, "OBV_SMA2", display=display.data_window)
