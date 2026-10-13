@@ -19,14 +19,10 @@
 // TEST PLAN:    30m, 2020-2026. Compare with E09. Judge on 2024-2026 only.
 // ============================================================================
 //@version=5
-strategy("avi_regV2_Strategy (interday + regime)", shorttitle="avi_regV2_R", overlay=false,
-         initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1,
-         commission_type=strategy.commission.cash_per_order,
-         commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+strategy("avi_regV2_Strategy (interday + regime)", shorttitle="avi_regV2_R", overlay=false, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
 
 // --- Inputs ---
-srcMode     = input.string("Custom", "Primary source", options=["Custom", "OBV (built-in)"],
-              tooltip="input.source cannot pick OBV unless an OBV indicator is on the chart, so OBV is computed here.")
+srcMode     = input.string("Custom", "Primary source", options=["Custom", "OBV (built-in)"], tooltip="input.source cannot pick OBV unless an OBV indicator is on the chart, so OBV is computed here.")
 src1_custom = input.source(close, "Primary custom source (when Custom)")
 src2_input  = input.source(close, "Secondary Source (e.g., Price)")
 len         = input.int(100, "Lookback Period", minval=10)
@@ -37,8 +33,7 @@ regimeTF  = input.timeframe("D", "Regime timeframe", group="Regime filter")
 adxLen    = input.int(14, "ADX length", minval=1, group="Regime filter")
 adxMin    = input.float(20, "Min ADX to allow entries", minval=0, group="Regime filter")
 
-killPts   = input.float(0, "Kill switch: max drawdown in points (0 = off)", minval=0, group="Risk",
-            tooltip="Closes all positions and stops new entries once equity falls this many points below its peak. With 1 unit, points = currency units.")
+killPts   = input.float(0, "Kill switch: max drawdown in points (0 = off)", minval=0, group="Risk", tooltip="Closes all positions and stops new entries once equity falls this many points below its peak. With 1 unit, points = currency units.")
 
 obv = ta.cum(math.sign(ta.change(close)) * volume)
 src1_input = srcMode == "OBV (built-in)" ? obv : src1_custom

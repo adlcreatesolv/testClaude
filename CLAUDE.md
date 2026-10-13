@@ -10,6 +10,7 @@
   FILE, AUTHOR / DERIVED FROM, DESCRIPTION, KNOWN ISSUES, TESTED, SUCCESSOR(S).
 - Keep `pine/README.md` (catalog + history) up to date whenever a script is added,
   changed or tested.
+- Dev scripts: one statement per line, no wrapped/continuation lines (user pastes them into TradingView).
 - Don't put model identifiers in files or commits.
 
 ## Backtest analysis
