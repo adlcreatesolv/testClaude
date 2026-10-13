@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"/root/.claude/uploads/9f211a94-20cc-5139-ae6d-7076af9e4ec2/ec653a4e-avi_regV2_NSE_NIFTY_2026-10-13-2.csv\" experiments/data/E12_avi_regV2_intraday-dev_30m.csv)",
+      "Bash(python3 -)",
+      "Bash(git add *)",
+      "Bash(git commit -qm 'Log E12: avi_regV2 intraday-only run *)",
+      "Bash(git push *)"
+    ]
+  }
+}

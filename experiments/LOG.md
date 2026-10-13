@@ -59,6 +59,7 @@ more than half the months profitable, both sides profitable.
 |---|---|---|---|---|---|---|---|---|---|---|
 | E08 | 2026-10-13 | original | 30m, 2020-01-01 → 2026-10-13 | as-is (both sources = close), 100% equity, no cost | 1,365 | +21,834 | 1.32 | −3,284 | PASS (pre-cost) | `E08_avi_regV2_original_30m.csv` |
 | E09 | 2026-10-13 | dev interday `fcb6740` | 30m, same period | defaults (price/price), 1 unit, cost 1 pt | 1,365 | +20,469 | 1.29 | −3,397 | MIXED (PF just < 1.3) | `E09_avi_regV2_interday-dev_30m.csv` |
+| E12 | 2026-10-13 | dev intraday (Mode = Intraday) | 30m, same period | price/price, 15:15 square-off, 15:00 cutoff, cost 1 pt | 1,175 | +5,627 | 1.20 | −2,199 | MIXED | `E12_avi_regV2_intraday-dev_30m.csv` |
 
 ### Analyses / findings
 
@@ -68,12 +69,13 @@ more than half the months profitable, both sides profitable.
 | A10 | E08 | Every year positive (2022 weakest, +391); longs +16,083, shorts +5,751; avg +16 pts/trade, so robust to costs (+15,009 at 5 pts). Buy & hold ≈ +10,300 pts. | INFO |
 | A11 | E08 | Overnight-held trades +39,649 vs same-day −17,815 (partly survivorship, see A08), so an intraday-only version is unlikely to keep the edge. | INFO |
 | A12 | E09 vs E08 | Dev version reproduces the original exactly minus 1 pt × 1,365 trades. | INFO |
+| A13 | E12 vs E09 | Intraday-only keeps an edge but only ~27% of the interday profit (+5,627 vs +20,469); avg 4.8 vs 15 pts/trade, so far more cost-sensitive (+927 at 4 pts extra slippage). Both sides positive (L +1,856 / S +3,771), 52/82 months green, but 2022–23 flat and 2025 −1,431. Max DD −2,199 (May-2025 → Jan-2026), recovered only Oct-2026. Fails PF > 1.3. Trades only on 635 of ~1,680 days (needs a fresh signal after square-off). | MIXED |
 
 ### Queue
 | ID | Plan | Status |
 |---|---|---|
 | E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | PENDING |
 | E11 | Interday dev, slippage 2–3 ticks | PENDING |
-| E12 | Intraday dev, Mode = Intraday | PENDING |
+| E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
 | E14 | Out-of-sample check on another index (e.g. BANKNIFTY) with unchanged settings | PENDING |

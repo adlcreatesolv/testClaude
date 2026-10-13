@@ -1,6 +1,6 @@
 // ============================================================================
 // TAG:          DEV
-// STATUS:       NOT YET TESTED
+// STATUS:       TESTED (MIXED: edge exists but weaker than interday)
 // NAME:         avi_regV2_Strategy (intraday option)
 // FILE:         pine/dev/avi_regV2_Strategy.intraday.dev.pine
 // DERIVED FROM: pine/original/avi_regV2_Strategy.original.pine
@@ -10,6 +10,9 @@
 //               to reproduce the interday version). Note: in the original run,
 //               same-day trades lost (-17,815 pts) and overnight ones made all
 //               the profit, so an intraday-only edge is doubtful.
+// TESTED:       30m, Jan-2020..Oct-2026, Intraday, price/price, 1 pt cost (E12):
+//               1,175 trades, +5,627 pts, PF 1.20, maxDD -2,199, 52/82 months
+//               green, 2025 -1,431. Interday (E09) is ~3.6x more profitable.
 // ============================================================================
 //@version=5
 strategy("avi_regV2_Strategy (intraday)", shorttitle="avi_regV2", overlay=false,
