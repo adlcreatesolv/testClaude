@@ -59,6 +59,7 @@ more than half the months profitable, both sides profitable.
 |---|---|---|---|---|---|---|---|---|---|---|
 | E08 | 2026-10-13 | original | 30m, 2020-01-01 → 2026-10-13 | as-is (both sources = close), 100% equity, no cost | 1,365 | +21,834 | 1.32 | −3,284 | PASS (pre-cost) | `E08_avi_regV2_original_30m.csv` |
 | E09 | 2026-10-13 | dev interday `fcb6740` | 30m, same period | defaults (price/price), 1 unit, cost 1 pt | 1,365 | +20,469 | 1.29 | −3,397 | MIXED (PF just < 1.3) | `E09_avi_regV2_interday-dev_30m.csv` |
+| E10 | 2026-10-13 | dev interday `pine/dev/avi_regV2_Strategy.interday.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | **Primary source = OBV (built-in)**, secondary = close, 1 unit, cost 1 pt | 1,380 | +12,705 | 1.23 | −2,755 | FAIL (worse than E09) | `E10_avi_regV2_interday-obv_30m.csv` |
 | E12 | 2026-10-13 | dev intraday (Mode = Intraday) | 30m, same period | price/price, 15:15 square-off, 15:00 cutoff, cost 1 pt | 1,175 | +5,627 | 1.20 | −2,199 | MIXED | `E12_avi_regV2_intraday-dev_30m.csv` |
 | E15 | 2026-10-13 | dev regime `pine/dev/avi_regV2_Strategy.regime.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | interday, price/price, daily ADX(14) > 20 for entries, kill switch off, cost 1 pt | 867 | +11,808 | 1.27 | −3,416 | FAIL | `E15_avi_regV2_regime-adx_30m.csv` |
 
@@ -76,6 +77,7 @@ more than half the months profitable, both sides profitable.
 | A16 | E12 | **Max DD anatomy (intraday):** peak 2025-05-20 (+5,625) → trough 2026-01-27 (+3,426) = −2,199 over 116 trades; recovered only 2026-10-13 (~17 months under water). Monthly: May −162, Jun −334, Jul +25, Aug −165, Sep −117, Oct −40, Nov −325, Dec −528, Jan −553 (8/9 red). Both sides lost (L −1,395 / S −804), win% 36, longest losing streak 8, worst days 14-Nov-25 −346, 27-Jan-26 −298, 23-Jan-26 −230. Second DD −1,741 from May-2022 to Apr-2024 (~2 years). On 1 futures lot (75) −2,199 pts ≈ ₹1.65 lakh. Both DDs = choppy, trendless regimes. | INFO |
 | A17 | E15 vs E09 | **Daily ADX(14) > 20 regime filter does not reduce drawdown.** Full period: trades 1,365 → 867, net +20,469 → +11,808 (−42%), PF 1.29 → 1.27, maxDD −3,397 → −3,416 (unchanged; now 2022-03 → 2022-11, recovered 2024-09). 2022 got worse (+190 → −1,049): ADX called 2022 'trending' while the signal whipsawed. Out-of-sample 2024–26 (R5): net +11,221 → +7,306, PF 1.36 → 1.44, maxDD −3,397 → −2,056; return/DD 3.3 → 3.6, a marginal gain that does not justify 35–42% less profit. Decision: keep E09 interday as baseline; do not tune ADX values (would be overfitting). | FAIL |
 | A18 | E09 | Correction/detail: the interday (E09) max DD is −3,397 from 2025-11-14 to 2026-04-07 (113 trades), recovered 2026-10-01. In-sample 2020–23: +9,248, PF 1.24; out-of-sample 2024–26: +11,221, PF 1.36 (edge held up in the later period). | INFO |
+| A19 | E10 vs E09 | **OBV as primary source is worse than price-only.** Net +12,705 vs +20,469 (−38%), PF 1.23 vs 1.29, avg 9.2 vs 15.0 pts/trade, green months 45/82 vs 56/82, 2021 negative (−192). MaxDD smaller (−2,755 vs −3,397, Nov-2025 → Feb-2026, not yet recovered) but profit/DD 4.6 vs 6.0. No longer always-in: OBV and price disagree often, so only 11% of exits are immediate reversals (flat in between). In-sample 2020–23 PF 1.14, out-of-sample 2024–26 PF 1.32 (E09: 1.24 / 1.36). Both sides still positive (L +8,934, S +3,772). Decision: keep **price/price** (E09) as baseline. | FAIL |
 
 ### Risk-management guidelines (decided 2026-10-13)
 | ID | Guideline | Basis |
@@ -89,7 +91,7 @@ more than half the months profitable, both sides profitable.
 ### Queue
 | ID | Plan | Status |
 |---|---|---|
-| E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | PENDING (next) |
+| E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | DONE — FAIL (A19) |
 | E11 | Interday dev, Properties → Slippage = 20 ticks (NIFTY tick 0.05 → 1 pt per fill, 2 pts per round trip, on top of 1 pt commission). Corrects the earlier '2–3 ticks', which would be only ~0.1 pt. | PENDING |
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
