@@ -14,3 +14,10 @@
 
 ## Backtest analysis
 - `tools/analyze_trades.py` analyses TradingView "List of trades" CSV exports.
+
+## Experiment log
+- Log every backtest run, analysis/finding and planned idea in `experiments/LOG.md`
+  (IDs: `E##` runs, `A##` analyses), with date, script + commit, chart/period,
+  settings, key metrics, status tag and data file.
+- Save each TradingView trade-list export as `experiments/data/E##_<script>_<variant>_<tf>.csv`.
+- Update the script's header `TESTED` line and `pine/README.md` when a run changes its status.

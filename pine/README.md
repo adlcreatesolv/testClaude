@@ -1,5 +1,7 @@
 # Pine Script catalog
 
+Full run-by-run record: [`experiments/LOG.md`](../experiments/LOG.md).
+
 Every script carries a header block with `TAG`, `STATUS`, `DESCRIPTION`,
 lineage (`DERIVED FROM` / `SUCCESSOR`) and test results.
 
