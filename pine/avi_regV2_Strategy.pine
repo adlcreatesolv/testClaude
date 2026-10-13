@@ -5,12 +5,12 @@ strategy("avi_regV2_Strategy (intraday)", shorttitle="avi_regV2", overlay=false,
          commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
 
 // --- Inputs ---
-srcMode    = input.string("OBV (built-in)", "Primary source", options=["OBV (built-in)", "Custom"],
+srcMode    = input.string("Custom", "Primary source", options=["OBV (built-in)", "Custom"],
              tooltip="input.source cannot pick OBV unless an OBV indicator is on the chart, so OBV is computed here.")
 src1_custom = input.source(close, "Primary custom source (when Custom)")
 src2_input = input.source(close, "Secondary Source (e.g., Price)")
 len        = input.int(100, "Lookback Period", minval=10)
-modeIn     = input.string("Intraday", "Mode", options=["Intraday", "Interday"])
+modeIn     = input.string("Interday", "Mode", options=["Intraday", "Interday"])
 sideIn     = input.string("Both", "Side", options=["Both", "Long only", "Short only"])
 sqHHMM     = input.int(1515, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530)
 cutHHMM    = input.int(1500, "Intraday: no new entries from (IST hhmm, bar close)", minval=900, maxval=1530)
