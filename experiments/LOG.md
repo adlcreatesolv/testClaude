@@ -60,6 +60,7 @@ more than half the months profitable, both sides profitable.
 | E08 | 2026-10-13 | original | 30m, 2020-01-01 → 2026-10-13 | as-is (both sources = close), 100% equity, no cost | 1,365 | +21,834 | 1.32 | −3,284 | PASS (pre-cost) | `E08_avi_regV2_original_30m.csv` |
 | E09 | 2026-10-13 | dev interday `fcb6740` | 30m, same period | defaults (price/price), 1 unit, cost 1 pt | 1,365 | +20,469 | 1.29 | −3,397 | MIXED (PF just < 1.3) | `E09_avi_regV2_interday-dev_30m.csv` |
 | E10 | 2026-10-13 | dev interday `pine/dev/avi_regV2_Strategy.interday.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | **Primary source = OBV (built-in)**, secondary = close, 1 unit, cost 1 pt | 1,380 | +12,705 | 1.23 | −2,755 | FAIL (worse than E09) | `E10_avi_regV2_interday-obv_30m.csv` |
+| E11 | 2026-10-14 | dev interday `pine/dev/avi_regV2_Strategy.interday.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | price/price, cost 1 pt + **slippage 20 ticks** (= 2 pts/round trip; total 3 pts) | 1,365 | +17,739 | 1.25 | −3,623 | PASS (robust to costs) | `E11_avi_regV2_interday-slip20_30m.csv` |
 | E12 | 2026-10-13 | dev intraday (Mode = Intraday) | 30m, same period | price/price, 15:15 square-off, 15:00 cutoff, cost 1 pt | 1,175 | +5,627 | 1.20 | −2,199 | MIXED | `E12_avi_regV2_intraday-dev_30m.csv` |
 | E15 | 2026-10-13 | dev regime `pine/dev/avi_regV2_Strategy.regime.dev.pine` | 30m, 2020-01-01 → 2026-10-13 | interday, price/price, daily ADX(14) > 20 for entries, kill switch off, cost 1 pt | 867 | +11,808 | 1.27 | −3,416 | FAIL | `E15_avi_regV2_regime-adx_30m.csv` |
 
@@ -78,6 +79,7 @@ more than half the months profitable, both sides profitable.
 | A17 | E15 vs E09 | **Daily ADX(14) > 20 regime filter does not reduce drawdown.** Full period: trades 1,365 → 867, net +20,469 → +11,808 (−42%), PF 1.29 → 1.27, maxDD −3,397 → −3,416 (unchanged; now 2022-03 → 2022-11, recovered 2024-09). 2022 got worse (+190 → −1,049): ADX called 2022 'trending' while the signal whipsawed. Out-of-sample 2024–26 (R5): net +11,221 → +7,306, PF 1.36 → 1.44, maxDD −3,397 → −2,056; return/DD 3.3 → 3.6, a marginal gain that does not justify 35–42% less profit. Decision: keep E09 interday as baseline; do not tune ADX values (would be overfitting). | FAIL |
 | A18 | E09 | Correction/detail: the interday (E09) max DD is −3,397 from 2025-11-14 to 2026-04-07 (113 trades), recovered 2026-10-01. In-sample 2020–23: +9,248, PF 1.24; out-of-sample 2024–26: +11,221, PF 1.36 (edge held up in the later period). | INFO |
 | A19 | E10 vs E09 | **OBV as primary source is worse than price-only.** Net +12,705 vs +20,469 (−38%), PF 1.23 vs 1.29, avg 9.2 vs 15.0 pts/trade, green months 45/82 vs 56/82, 2021 negative (−192). MaxDD smaller (−2,755 vs −3,397, Nov-2025 → Feb-2026, not yet recovered) but profit/DD 4.6 vs 6.0. No longer always-in: OBV and price disagree often, so only 11% of exits are immediate reversals (flat in between). In-sample 2020–23 PF 1.14, out-of-sample 2024–26 PF 1.32 (E09: 1.24 / 1.36). Both sides still positive (L +8,934, S +3,772). Decision: keep **price/price** (E09) as baseline. | FAIL |
+| A20 | E11 vs E09 | **Survives realistic slippage.** Identical 1,365 trades, each exactly 2 pts worse (verified). Net +17,739 (−13%), PF 1.25, avg 13 pts/trade, maxDD −3,623 (Nov-2025 → Apr-2026, not yet recovered), 54/82 green months. By year: 2020 +4,397 · 2021 +761 · 2022 **−212** · 2023 +2,645 · 2024 +5,687 · 2025 +2,859 · 2026 +1,601. In-sample 2020–23 PF 1.19, out-of-sample 2024–26 PF 1.32. Shorts thin (+3,702) vs longs +14,037. At 3 pts total cost per trade the strategy still clears ~2× buy & hold (~+10,300). | PASS |
 
 ### Risk-management guidelines (decided 2026-10-13)
 | ID | Guideline | Basis |
@@ -92,7 +94,7 @@ more than half the months profitable, both sides profitable.
 | ID | Plan | Status |
 |---|---|---|
 | E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | DONE — FAIL (A19) |
-| E11 | Interday dev, Properties → Slippage = 20 ticks (NIFTY tick 0.05 → 1 pt per fill, 2 pts per round trip, on top of 1 pt commission). Corrects the earlier '2–3 ticks', which would be only ~0.1 pt. | PENDING |
+| E11 | Interday dev, Properties → Slippage = 20 ticks (NIFTY tick 0.05 → 1 pt per fill, 2 pts per round trip, on top of 1 pt commission). Corrects the earlier '2–3 ticks', which would be only ~0.1 pt. | DONE — PASS (A20) |
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
 | E14 | Out-of-sample check on NSE:BANKNIFTY, 30m, 2020–2026, interday dev with all defaults unchanged | PENDING |

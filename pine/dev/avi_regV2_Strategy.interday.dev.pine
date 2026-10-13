@@ -12,7 +12,9 @@
 //               positive (2022 only +190). Matches the original minus costs.
 // TESTED (E10): Primary source = OBV (built-in): 1,380 trades, +12,705 pts,
 //               PF 1.23, maxDD -2,755 -> worse than price/price; keep Custom.
-// TODO:         Slippage 20 ticks (E11); BANKNIFTY (E14).
+// TESTED (E11): + slippage 20 ticks (3 pts total cost/trade): +17,739 pts,
+//               PF 1.25, maxDD -3,623, 2022 -212; edge survives costs.
+// TODO:         BANKNIFTY (E14).
 // ============================================================================
 //@version=5
 strategy("avi_regV2_Strategy (interday)", shorttitle="avi_regV2", overlay=false, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
