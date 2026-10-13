@@ -19,7 +19,7 @@ File naming: `<Name>.original.pine`, `<Name>[.<variant>].dev.pine`.
 | `original/OBV_Cross_Auto.original.pine` | ORIGINAL | Superseded | OBV stack above 34/55 SMAs + price > 13 SMA; CE on flag on, PE on flag off; intraday square-off 15:15 | 5m, 13 mo: +889 pts, PF 1.05, no costs (incl. overnight-carry bug) |
 | `dev/OBV_Cross_Auto.dev.pine` | DEV | **REJECTED** | Square-off fix, entry cutoff, confirmation bars, HTF filter, exit modes, daily entry cap | 5m, 13 mo, 1 pt cost: −178 pts, PF 0.98 |
 | `original/avi_regV2_Strategy.original.pine` | ORIGINAL | Superseded | Normalised regression-slope acceleration of two sources; both accelerating = long, both decelerating = short | 30m, 2020–2026: +21,834 pts/unit, PF 1.32, no costs |
-| `dev/avi_regV2_Strategy.interday.dev.pine` | DEV | **UNDER TEST** | Original logic, fixed 1 unit, 1 pt cost, built-in OBV option, Side filter | 30m, 2020–2026, 1 pt cost: +20,469 pts, PF 1.29, maxDD −3,397 |
+| `dev/avi_regV2_Strategy.interday.dev.pine` | DEV | **UNDER TEST (best version)** | Original logic, fixed 1 unit, 1 pt cost, built-in OBV option, Side filter | 30m, 2020–2026, 1 pt cost: +20,469 pts, PF 1.29, maxDD −3,397 |
 | `dev/avi_regV2_Strategy.intraday.dev.pine` | DEV | TESTED (MIXED) | Interday dev + Intraday mode (default; 15:15 square-off, 15:00 cutoff) | 30m, 2020–2026, 1 pt cost: +5,627 pts, PF 1.20, maxDD −2,199 |
 | `dev/avi_regV2_Strategy.regime.dev.pine` | DEV | **REJECTED** (E15) | Interday dev + daily ADX(14) > 20 regime filter for entries + optional drawdown kill switch | 30m, 2020–2026, 1 pt cost: +11,808 pts, PF 1.27, maxDD −3,416 |
 
