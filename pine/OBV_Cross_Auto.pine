@@ -1,5 +1,5 @@
 //@version=5
-strategy("OBV_Cross_Auto (13,34,55) exact", shorttitle="OBV_CA", overlay=true,
+strategy("OBV_Cross_Auto (13,34,55) trend-hold", shorttitle="OBV_CA", overlay=true,
          pyramiding=0, default_qty_type=strategy.fixed, default_qty_value=1,
          initial_capital=100000, commission_type=strategy.commission.cash_per_order,
          commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
@@ -16,8 +16,11 @@ cutHHMM = input.int(1500, "Intraday: no new entries from (IST hhmm, bar close)",
 confirmN = input.int(0, "Entry confirmation bars", minval=0,
          tooltip="Enter only after the OBV state has held for this many bars after the flip bar. 0 = enter on the flip bar (original behaviour). Exits still happen on the flip itself.")
 htfMode = input.string("OBV state", "Higher-TF filter", options=["Off", "OBV state", "Price vs SMA"],
-         tooltip="CE entries only when the higher timeframe is bullish, PE only when bearish. Uses the last COMPLETED higher-TF bar (no repainting). Affects entries only; exits are unchanged.")
-htfTF   = input.timeframe("15", "Higher-TF timeframe")
+         tooltip="CE entries only when the higher timeframe is bullish, PE only when bearish. Uses the last COMPLETED higher-TF bar (no repainting).")
+htfTF   = input.timeframe("60", "Higher-TF timeframe", tooltip="60 for a 5m chart, 15 for a 1m chart.")
+exitMode = input.string("HTF flip", "Exit on", options=["Chart flip", "HTF flip", "Square-off only"],
+         tooltip="Chart flip: exit when the chart OBV state flips (original). HTF flip: exit only when the higher-TF state turns against the trade. Square-off only: hold until square-off or stop; no new entry while in a trade. HTF flip falls back to Chart flip when the HTF filter is Off.")
+maxTrades = input.int(2, "Max entries per day (0 = no limit)", minval=0)
 
 // OBV stack state, as a function so the same logic runs on the higher TF.
 obvFlag() =>
@@ -60,16 +63,29 @@ confirmPE = buyFlag == 0.0 and barsSinceFlip == confirmN
 lowSinceFlip  = ta.lowest(low,  confirmN + 1)
 highSinceFlip = ta.highest(high, confirmN + 1)
 
+// Exit rules per mode.
+chartExit = exitMode == "Chart flip" or (exitMode == "HTF flip" and htfMode == "Off")
+exitCE = chartExit ? bearSignal : exitMode == "HTF flip" ? htfState == 0.0 : false
+exitPE = chartExit ? bullSignal : exitMode == "HTF flip" ? htfState == 1.0 : false
+exitTag = chartExit ? "OBV flip" : "HTF flip"
+
 isIntraday  = modeIn == "Intraday"
 hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
 atSquareOff = isIntraday and hhmmClose >= sqHHMM
-canEnter    = not isIntraday or hhmmClose < cutHHMM
+newDay      = timeframe.change("D")
+
+var int entriesToday = 0
+if newDay
+    entriesToday := 0
+underCap = maxTrades == 0 or entriesToday < maxTrades
+flatOK   = exitMode != "Square-off only" or strategy.position_size == 0
+canEnter = (not isIntraday or hhmmClose < cutHHMM) and underCap and flatOK
 wantCE = sideIn != "PE only (short)"
 wantPE = sideIn != "CE only (long)"
 
 // Safety net: if a position survived into a new day (short session such as
 // Muhurat, or missing bars before the square-off time), flatten it at once.
-staleCarry = isIntraday and timeframe.change("D") and strategy.position_size != 0
+staleCarry = isIntraday and newDay and strategy.position_size != 0
 
 var float slCE = na
 var float slPE = na
@@ -80,15 +96,17 @@ if atSquareOff
 else
     if staleCarry
         strategy.close_all(comment="stale carry", immediately=true)
-    if bearSignal
-        strategy.close("CE", comment="OBV stack off")
-    if bullSignal
-        strategy.close("PE", comment="OBV stack on")
-    if confirmCE and wantCE and canEnter and htfBull
+    if exitCE
+        strategy.close("CE", comment=exitTag)
+    if exitPE
+        strategy.close("PE", comment=exitTag)
+    if confirmCE and wantCE and canEnter and htfBull and strategy.position_size <= 0
         slCE := lowSinceFlip
+        entriesToday += 1
         strategy.entry("CE", strategy.long, comment="TE_BUY_CE")
-    if confirmPE and wantPE and canEnter and htfBear
+    else if confirmPE and wantPE and canEnter and htfBear and strategy.position_size >= 0
         slPE := highSinceFlip
+        entriesToday += 1
         strategy.entry("PE", strategy.short, comment="TE_BUY_PE")
 if useSL and not atSquareOff
     if not na(slCE)
