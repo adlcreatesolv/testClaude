@@ -91,4 +91,4 @@ more than half the months profitable, both sides profitable.
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
 | E14 | Out-of-sample check on another index (e.g. BANKNIFTY) with unchanged settings | PENDING |
-| E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. | PENDING (after E10) |
+| E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. Script: `pine/dev/avi_regV2_Strategy.regime.dev.pine` (daily ADX(14) > 20, fixed in advance; kill switch off by default). | READY TO RUN |

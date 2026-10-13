@@ -1,0 +1,121 @@
+// ============================================================================
+// TAG:          DEV
+// STATUS:       NOT YET TESTED (experiment E15)
+// NAME:         avi_regV2_Strategy (interday + regime filter)
+// FILE:         pine/dev/avi_regV2_Strategy.regime.dev.pine
+// DERIVED FROM: pine/dev/avi_regV2_Strategy.interday.dev.pine
+//               (original: pine/original/avi_regV2_Strategy.original.pine)
+// DESCRIPTION:  Interday dev version (same signals, holds overnight) plus:
+//               1) Regime filter: new entries only when the market is trending,
+//                  measured by DAILY ADX(14) > 20 from the last completed day
+//                  (no repainting). Exits are unchanged. Values are textbook
+//                  defaults chosen before testing (rule R5): do not tune them
+//                  on 2024-2026 data.
+//               2) Kill switch (rule R3): if the strategy's drawdown from its
+//                  equity peak reaches N points, close everything and take no
+//                  new trades. 0 = off (default, so backtests stay comparable).
+// HYPOTHESIS:   Both long drawdowns (2022-24, May-2025..Jan-2026) were choppy,
+//               trendless markets (A16); skipping entries there should cut DD.
+// TEST PLAN:    30m, 2020-2026. Compare with E09. Judge on 2024-2026 only.
+// ============================================================================
+//@version=5
+strategy("avi_regV2_Strategy (interday + regime)", shorttitle="avi_regV2_R", overlay=false,
+         initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1,
+         commission_type=strategy.commission.cash_per_order,
+         commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+
+// --- Inputs ---
+srcMode     = input.string("Custom", "Primary source", options=["Custom", "OBV (built-in)"],
+              tooltip="input.source cannot pick OBV unless an OBV indicator is on the chart, so OBV is computed here.")
+src1_custom = input.source(close, "Primary custom source (when Custom)")
+src2_input  = input.source(close, "Secondary Source (e.g., Price)")
+len         = input.int(100, "Lookback Period", minval=10)
+sideIn      = input.string("Both", "Side", options=["Both", "Long only", "Short only"])
+
+regimeOn  = input.bool(true, "Regime filter: trade only when trending", group="Regime filter")
+regimeTF  = input.timeframe("D", "Regime timeframe", group="Regime filter")
+adxLen    = input.int(14, "ADX length", minval=1, group="Regime filter")
+adxMin    = input.float(20, "Min ADX to allow entries", minval=0, group="Regime filter")
+
+killPts   = input.float(0, "Kill switch: max drawdown in points (0 = off)", minval=0, group="Risk",
+            tooltip="Closes all positions and stops new entries once equity falls this many points below its peak. With 1 unit, points = currency units.")
+
+obv = ta.cum(math.sign(ta.change(close)) * volume)
+src1_input = srcMode == "OBV (built-in)" ? obv : src1_custom
+
+// --- Normalization ---
+normalize(_src, _len) =>
+    _hi = ta.highest(_src, _len)
+    _lo = ta.lowest(_src, _len)
+    _norm = ((_src - _lo) / math.max(_hi - _lo, 0.00001)) * 100
+    math.min(math.max(_norm, 0), 100)
+
+norm1 = normalize(src1_input, len)
+norm2 = normalize(src2_input, len)
+
+// --- Regression Logic ---
+reg1_vis = ta.linreg(norm1, len, 0)
+reg2_vis = ta.linreg(norm2, len, 0)
+
+// --- Momentum Logic ---
+// linreg(x, len, 0) - linreg(x, len, 1) is the regression slope; the
+// previous bar's slope is the same series one bar back.
+slope1 = reg1_vis - ta.linreg(norm1, len, 1)
+slope2 = reg2_vis - ta.linreg(norm2, len, 1)
+prim_is_accel = slope1 > slope1[1]
+sec_is_accel  = slope2 > slope2[1]
+
+// --- Conditions ---
+bullCondition = prim_is_accel and sec_is_accel
+bearCondition = not prim_is_accel and not sec_is_accel
+
+bullEntry = bullCondition and not bullCondition[1]
+bullExit  = not bullCondition and bullCondition[1]
+bearEntry = bearCondition and not bearCondition[1]
+bearExit  = not bearCondition and bearCondition[1]
+
+wantLong  = sideIn != "Short only"
+wantShort = sideIn != "Long only"
+
+// --- Regime filter (last completed regime-TF bar: [1] + lookahead_on) ---
+adxPrev() =>
+    [_dp, _dm, _adx] = ta.dmi(adxLen, adxLen)
+    _adx[1]
+regimeAdx = request.security(syminfo.tickerid, regimeTF, adxPrev(), lookahead=barmerge.lookahead_on)
+trending  = not regimeOn or (not na(regimeAdx) and regimeAdx > adxMin)
+
+// --- Kill switch ---
+var float eqPeak = strategy.initial_capital
+eqPeak := math.max(eqPeak, strategy.equity)
+var bool killed = false
+if killPts > 0 and eqPeak - strategy.equity >= killPts
+    killed := true
+
+canEnter = trending and not killed
+
+// --- Strategy Execution Logic (positions may be held overnight) ---
+if killed
+    strategy.close_all(comment="kill switch")
+else
+    if bullExit
+        strategy.close("Bull Long", comment="Trend Break")
+    if bearExit
+        strategy.close("Bear Short", comment="Trend Break")
+    if bullEntry and wantLong and canEnter
+        strategy.entry("Bull Long", strategy.long)
+    if bearEntry and wantShort and canEnter
+        strategy.entry("Bear Short", strategy.short)
+
+// --- Visuals ---
+hline(0, "Min", color=color.new(color.gray, 50))
+hline(100, "Max", color=color.new(color.gray, 50))
+bgcolor(regimeOn and not trending ? color.new(color.gray, 85) : na, title="Choppy regime (no entries)")
+
+plot(reg1_vis, "Primary", color = (prim_is_accel ? color.green : color.red), linewidth=3)
+plot(reg2_vis, "Secondary", color = (sec_is_accel ? color.lime : color.fuchsia), linewidth=2)
+plot(regimeAdx, "Regime ADX", display=display.data_window)
+
+plotshape(bullEntry ? 0 : na, "Bull Entry", shape.labelup, location.absolute, color.green, text="BULL ENTER", textcolor=color.white, size=size.small)
+plotshape(bullExit ? 100 : na, "Bull Exit", shape.labeldown, location.absolute, color.green, text="BULL EXIT", textcolor=color.white, size=size.small)
+plotshape(bearEntry ? 100 : na, "Bear Entry", shape.labeldown, location.absolute, color.fuchsia, text="BEAR ENTER", textcolor=color.white, size=size.small)
+plotshape(bearExit ? 0 : na, "Bear Exit", shape.labelup, location.absolute, color.fuchsia, text="BEAR EXIT", textcolor=color.white, size=size.small)
