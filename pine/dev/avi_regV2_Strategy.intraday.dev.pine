@@ -6,8 +6,8 @@
 // DERIVED FROM: pine/original/avi_regV2_Strategy.original.pine
 // DESCRIPTION:  Interday dev version plus Mode input (Intraday/Interday),
 //               same-bar 15:15 IST square-off, 15:00 entry cutoff and
-//               stale-carry close. Defaults to Interday; set Mode = Intraday
-//               to test without overnight holding. Note: in the original run,
+//               stale-carry close. Defaults to Intraday (set Mode = Interday
+//               to reproduce the interday version). Note: in the original run,
 //               same-day trades lost (-17,815 pts) and overnight ones made all
 //               the profit, so an intraday-only edge is doubtful.
 // ============================================================================
@@ -23,7 +23,7 @@ srcMode    = input.string("Custom", "Primary source", options=["OBV (built-in)",
 src1_custom = input.source(close, "Primary custom source (when Custom)")
 src2_input = input.source(close, "Secondary Source (e.g., Price)")
 len        = input.int(100, "Lookback Period", minval=10)
-modeIn     = input.string("Interday", "Mode", options=["Intraday", "Interday"])
+modeIn     = input.string("Intraday", "Mode", options=["Intraday", "Interday"])
 sideIn     = input.string("Both", "Side", options=["Both", "Long only", "Short only"])
 sqHHMM     = input.int(1515, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530)
 cutHHMM    = input.int(1500, "Intraday: no new entries from (IST hhmm, bar close)", minval=900, maxval=1530)
