@@ -70,6 +70,7 @@ more than half the months profitable, both sides profitable.
 | A11 | E08 | Overnight-held trades +39,649 vs same-day −17,815 (partly survivorship, see A08), so an intraday-only version is unlikely to keep the edge. | INFO |
 | A12 | E09 vs E08 | Dev version reproduces the original exactly minus 1 pt × 1,365 trades. | INFO |
 | A13 | E12 vs E09 | Intraday-only keeps an edge but only ~27% of the interday profit (+5,627 vs +20,469); avg 4.8 vs 15 pts/trade, so far more cost-sensitive (+927 at 4 pts extra slippage). Both sides positive (L +1,856 / S +3,771), 52/82 months green, but 2022–23 flat and 2025 −1,431. Max DD −2,199 (May-2025 → Jan-2026), recovered only Oct-2026. Fails PF > 1.3. Trades only on 635 of ~1,680 days (needs a fresh signal after square-off). | MIXED |
+| A14 | E12, E09 | **Equity-curve filter** (trade only while strategy equity ≥ its N-trade MA, N=10/20/50), simulated from trade lists. Intraday: maxDD −2,199 → −1,557 at best but net −34% (+3,726). Interday: worse for N=10/20 (maxDD ≈ −4,050, net −75…−90%); N=50 ≈ same DD, net −29%. Does not prevent drawdowns. | FAIL |
 
 ### Queue
 | ID | Plan | Status |
@@ -77,5 +78,6 @@ more than half the months profitable, both sides profitable.
 | E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | PENDING |
 | E11 | Interday dev, slippage 2–3 ticks | PENDING |
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
+| E15 | Regime filter (e.g. daily ADX or regression R² 'trendiness'), rule fixed on 2020–2023, judged only on 2024–2026 | PENDING |
 | E13 | Long only vs Short only | PENDING |
 | E14 | Out-of-sample check on another index (e.g. BANKNIFTY) with unchanged settings | PENDING |
