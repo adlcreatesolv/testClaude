@@ -90,8 +90,8 @@ more than half the months profitable, both sides profitable.
 | ID | Plan | Status |
 |---|---|---|
 | E10 | Interday dev, Primary source = OBV (built-in), 30m 2020–2026 | PENDING (next) |
-| E11 | Interday dev, slippage 2–3 ticks | PENDING |
+| E11 | Interday dev, Properties → Slippage = 20 ticks (NIFTY tick 0.05 → 1 pt per fill, 2 pts per round trip, on top of 1 pt commission). Corrects the earlier '2–3 ticks', which would be only ~0.1 pt. | PENDING |
 | E12 | Intraday dev, Mode = Intraday | DONE (see runs) |
 | E13 | Long only vs Short only | PENDING |
-| E14 | Out-of-sample check on another index (e.g. BANKNIFTY) with unchanged settings | PENDING |
+| E14 | Out-of-sample check on NSE:BANKNIFTY, 30m, 2020–2026, interday dev with all defaults unchanged | PENDING |
 | E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. Script: `pine/dev/avi_regV2_Strategy.regime.dev.pine` (daily ADX(14) > 20, fixed in advance; kill switch off by default). | DONE — FAIL (A17) |
