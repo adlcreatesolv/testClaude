@@ -1,3 +1,19 @@
+// ============================================================================
+// TAG:          DEV
+// STATUS:       REJECTED (no edge after costs over 13 months; see README)
+// NAME:         OBV_Cross_Auto (13,34,55) trend-hold
+// FILE:         pine/dev/OBV_Cross_Auto.dev.pine
+// DERIVED FROM: pine/original/OBV_Cross_Auto.original.pine
+// DESCRIPTION:  Original OBV stack signals plus: same-bar intraday square-off
+//               (close_all immediately=true), stale-carry safety close, entry
+//               cutoff, N-bar entry confirmation, non-repainting higher-TF
+//               filter (OBV state / price vs SMA), exit mode (chart flip / HTF
+//               flip / square-off only), max entries per day, 1 pt round-trip
+//               commission, fixed 1 unit.
+// TESTED:       5m, Sep-2025..Oct-2026, 1 pt cost/trade:
+//                 HTF 60 + chart-flip exit:  639 trades, -178 pts, PF 0.98
+//                 HTF 60 + HTF-flip exit:    245 trades, -976 pts, PF 0.90
+// ============================================================================
 //@version=5
 strategy("OBV_Cross_Auto (13,34,55) trend-hold", shorttitle="OBV_CA", overlay=true,
          pyramiding=0, default_qty_type=strategy.fixed, default_qty_value=1,

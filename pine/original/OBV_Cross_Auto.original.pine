@@ -1,0 +1,76 @@
+// ============================================================================
+// TAG:          ORIGINAL
+// NAME:         OBV_Cross_Auto (13,34,55) exact
+// FILE:         pine/original/OBV_Cross_Auto.original.pine
+// AUTHOR:       User (shared 2026-10-13). Code below is verbatim.
+// DESCRIPTION:  OBV stack strategy for NSE:NIFTY. buyFlag = 1 when OBV is
+//               stacked above its 34/55 SMAs (either order) and price is above
+//               its 13 SMA (or the flag is already on). Flag 0->1 = TE_BUY_CE
+//               (long), 1->0 = TE_BUY_PE (short). Intraday mode squares off at
+//               15:15 IST. Optional stop at the signal-bar extreme.
+// KNOWN ISSUES: Intraday square-off fills at next bar open, so on the day's
+//               last bar positions carried overnight (45 trades in the 5m run).
+// TESTED:       5m, Sep-2025..Oct-2026: +889 pts, PF 1.05, maxDD -1,285, no
+//               costs; +825 of that came from the overnight-carry bug.
+// SUCCESSOR:    pine/dev/OBV_Cross_Auto.dev.pine
+// ============================================================================
+//@version=5
+strategy("OBV_Cross_Auto (13,34,55) exact", shorttitle="OBV_CA", overlay=true,
+         pyramiding=0, default_qty_type=strategy.fixed, default_qty_value=1,
+         initial_capital=100000, commission_type=strategy.commission.cash_per_order,
+         commission_value=0, slippage=0)
+
+length  = input.int(13, "Price SMA",  minval=1)
+length1 = input.int(34, "OBV SMA 1",  minval=1)
+length2 = input.int(55, "OBV SMA 2",  minval=1)
+modeIn  = input.string("Intraday", "Mode", options=["Intraday", "Interday"])
+sideIn  = input.string("Both", "Side", options=["Both", "CE only (long)", "PE only (short)"])
+useSL   = input.bool(false, "Stop at signal-bar extreme (CE: low, PE: high)")
+sqHHMM  = input.int(1515, "Intraday square-off (IST hhmm)", minval=900, maxval=1530)
+
+obv  = ta.cum(math.sign(ta.change(close)) * volume)
+sma  = ta.sma(close, length)
+sma1 = ta.sma(obv, length1)
+sma2 = ta.sma(obv, length2)
+
+var float buyFlag = 0.0
+if ((obv > sma1 and sma1 > sma2) or (obv > sma2 and sma2 > sma1)) and (close > sma or buyFlag == 1)
+    buyFlag := 1.0
+else
+    buyFlag := 0.0
+
+bullSignal = buyFlag == 1.0 and buyFlag[1] == 0.0   // TE_BUY_CE
+bearSignal = buyFlag == 0.0 and buyFlag[1] == 1.0   // TE_BUY_PE
+
+hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
+atSquareOff = modeIn == "Intraday" and hhmmClose >= sqHHMM
+wantCE = sideIn != "PE only (short)"
+wantPE = sideIn != "CE only (long)"
+
+var float slCE = na
+var float slPE = na
+if atSquareOff
+    strategy.close_all(comment="square-off")
+else
+    if bearSignal
+        strategy.close("CE", comment="OBV stack off")
+    if bullSignal
+        strategy.close("PE", comment="OBV stack on")
+    if bullSignal and wantCE
+        slCE := low
+        strategy.entry("CE", strategy.long, comment="TE_BUY_CE")
+    if bearSignal and wantPE
+        slPE := high
+        strategy.entry("PE", strategy.short, comment="TE_BUY_PE")
+if useSL and not atSquareOff
+    if not na(slCE)
+        strategy.exit("SL CE", "CE", stop=slCE)
+    if not na(slPE)
+        strategy.exit("SL PE", "PE", stop=slPE)
+
+bgcolor(buyFlag == 1.0 ? color.new(color.green, 90) : na)
+plotshape(bullSignal, "TE_BUY_CE", shape.triangleup,   location.belowbar, color.green, size=size.tiny)
+plotshape(bearSignal, "TE_BUY_PE", shape.triangledown, location.abovebar, color.red,   size=size.tiny)
+plot(obv,  "OBV",      display=display.data_window)
+plot(sma1, "OBV_SMA1", display=display.data_window)
+plot(sma2, "OBV_SMA2", display=display.data_window)

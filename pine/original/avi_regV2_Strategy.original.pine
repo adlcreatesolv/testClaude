@@ -1,0 +1,88 @@
+// ============================================================================
+// TAG:          ORIGINAL
+// NAME:         avi_regV2_Strategy
+// FILE:         pine/original/avi_regV2_Strategy.original.pine
+// AUTHOR:       User (shared 2026-10-13). Code below is verbatim.
+// DESCRIPTION:  Normalises two sources (intended: OBV and price) to 0-100 over
+//               `len` bars, fits a linear regression to each, and compares the
+//               regression slope with the previous bar's slope ("acceleration").
+//               Both accelerating = Bull Long; both decelerating = Bear Short;
+//               a trade closes when its condition ends ("Trend Break").
+//               Sizing: 100% of equity. No costs. Holds overnight.
+// KNOWN ISSUES: Both sources default to `close` (input.source cannot select
+//               OBV unless an OBV indicator is on the chart), so it actually
+//               runs as an always-in price-only reversal system.
+// TESTED:       30m, Jan-2020..Oct-2026, as-is (price/price): 1,365 trades,
+//               +21,834 NIFTY pts per unit, PF 1.32, maxDD -3,284 pts, every
+//               year positive, no costs. Buy & hold ~ +10,300 pts.
+// SUCCESSORS:   pine/dev/avi_regV2_Strategy.interday.dev.pine
+//               pine/dev/avi_regV2_Strategy.intraday.dev.pine
+// ============================================================================
+//@version=5
+strategy("avi_regV2_Strategy", overlay=false, initial_capital=100000, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// --- Inputs ---
+src1_input = input.source(close, "Primary Source (e.g., OBV)")
+src2_input = input.source(close, "Secondary Source (e.g., Price)")
+len        = input.int(100, "Lookback Period", minval=10)
+
+// --- Normalization ---
+normalize(_src, _len) =>
+    _hi = ta.highest(_src, _len)
+    _lo = ta.lowest(_src, _len)
+    _norm = ((_src - _lo) / math.max(_hi - _lo, 0.00001)) * 100
+    math.min(math.max(_norm, 0), 100)
+
+norm1 = normalize(src1_input, len)
+norm2 = normalize(src2_input, len)
+
+// --- Regression Logic ---
+reg1_vis = ta.linreg(norm1, len, 0)
+reg2_vis = ta.linreg(norm2, len, 0)
+reg1_raw = ta.linreg(src1_input, len, 0)
+
+// --- Momentum Logic ---
+slope1 = reg1_vis - ta.linreg(norm1, len, 1)
+prev_slope1 = ta.linreg(norm1[1], len, 0) - ta.linreg(norm1[1], len, 1)
+slope2 = reg2_vis - ta.linreg(norm2, len, 1)
+prev_slope2 = ta.linreg(norm2[1], len, 0) - ta.linreg(norm2[1], len, 1)
+
+prim_is_accel = slope1 > prev_slope1
+sec_is_accel  = slope2 > prev_slope2
+
+// --- Conditions ---
+bullCondition = prim_is_accel and sec_is_accel
+bearCondition = not prim_is_accel and not sec_is_accel
+
+bullEntry = bullCondition and not bullCondition[1]
+bullExit  = not bullCondition and bullCondition[1]
+bearEntry = bearCondition and not bearCondition[1]
+bearExit  = not bearCondition and bearCondition[1]
+
+// --- Strategy Execution Logic ---
+// Long Trades
+if bullEntry
+    strategy.entry("Bull Long", strategy.long)
+
+if bullExit
+    strategy.close("Bull Long", comment="Trend Break")
+
+// Short Trades
+if bearEntry
+    strategy.entry("Bear Short", strategy.short)
+
+if bearExit
+    strategy.close("Bear Short", comment="Trend Break")
+
+// --- Visuals (Keeping your original Dashboard) ---
+hline(0, "Min", color=color.new(color.gray, 50))
+hline(100, "Max", color=color.new(color.gray, 50))
+
+plot(reg1_vis, "Primary", color = (prim_is_accel ? color.green : color.red), linewidth=3)
+plot(reg2_vis, "Secondary", color = (sec_is_accel ? color.lime : color.fuchsia), linewidth=2)
+
+// Entry/Exit Visual Markers
+plotshape(bullEntry ? 0 : na, "Bull Entry", shape.labelup, location.absolute, color.green, text="BULL ENTER", textcolor=color.white, size=size.small)
+plotshape(bullExit ? 100 : na, "Bull Exit", shape.labeldown, location.absolute, color.green, text="BULL EXIT", textcolor=color.white, size=size.small)
+plotshape(bearEntry ? 100 : na, "Bear Entry", shape.labeldown, location.absolute, color.fuchsia, text="BEAR ENTER", textcolor=color.white, size=size.small)
+plotshape(bearExit ? 0 : na, "Bear Exit", shape.labelup, location.absolute, color.fuchsia, text="BEAR EXIT", textcolor=color.white, size=size.small)

@@ -1,3 +1,17 @@
+// ============================================================================
+// TAG:          DEV
+// STATUS:       UNDER TEST (promising)
+// NAME:         avi_regV2_Strategy (interday)
+// FILE:         pine/dev/avi_regV2_Strategy.interday.dev.pine
+// DERIVED FROM: pine/original/avi_regV2_Strategy.original.pine
+// DESCRIPTION:  Same signal logic as the original. Changes: fixed 1 unit (P&L
+//               in NIFTY points), 1 pt round-trip commission, built-in OBV
+//               option for the primary source, Side filter. Holds overnight.
+// TESTED:       30m, Jan-2020..Oct-2026, defaults (price/price), 1 pt cost:
+//               1,365 trades, +20,469 pts, PF 1.29, maxDD -3,397, every year
+//               positive (2022 only +190). Matches the original minus costs.
+// TODO:         Primary source = OBV (built-in); slippage 2-3 ticks.
+// ============================================================================
 //@version=5
 strategy("avi_regV2_Strategy (interday)", shorttitle="avi_regV2", overlay=false,
          initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1,
