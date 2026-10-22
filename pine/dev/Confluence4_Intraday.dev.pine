@@ -1,6 +1,7 @@
 // ============================================================================
 // TAG:          DEV
 // STATUS:       NOT YET TESTED (experiment E18)
+// CHANGES:      2026-10-22 default exit = Supertrend trailing stop (user request).
 // NAME:         Confluence4 Intraday (Supertrend, Pivot R1/S1, Bollinger, RSI)
 // FILE:         pine/dev/Confluence4_Intraday.dev.pine
 // DERIVED FROM: User's strategy spec, 2026-10-22 (no original script):
@@ -13,9 +14,10 @@
 //               SHORT: Supertrend(10,3) down | close < daily pivot S1 |
 //                      close < lower BB(20,2) | RSI(14) < 30
 //               Entry when the score reaches >= 3 (input) on this bar.
-//               Exit (default) when ANY condition that was true at entry
-//               turns false. Alternatives: Supertrend flip only, or score
-//               drops below the threshold.
+//               Exit (default): trailing stop at the Supertrend line, moved
+//               every bar (entries then need Supertrend to agree). Others:
+//               any entry condition flips, Supertrend flip only, score
+//               below threshold.
 //               Intraday: same-bar 15:15 IST square-off, no entries from
 //               15:00, stale-carry close. Fixed 1 unit, 1 pt round-trip cost.
 // INTERPRETATION (confirm with user): "crossed" is treated as a state (close
@@ -37,7 +39,7 @@ rsiLen   = input.int(14, "RSI length", minval=1, group="Conditions")
 rsiHi    = input.float(70, "RSI long above", group="Conditions")
 rsiLo    = input.float(30, "RSI short below", group="Conditions")
 minScore = input.int(3, "Conditions needed for entry (of 4)", minval=1, maxval=4, group="Entry / exit")
-exitMode = input.string("Any entry condition flips", "Exit on", options=["Any entry condition flips", "Supertrend flip only", "Score below threshold"], group="Entry / exit")
+exitMode = input.string("Supertrend trail", "Exit on", options=["Supertrend trail", "Any entry condition flips", "Supertrend flip only", "Score below threshold"], group="Entry / exit", tooltip="Supertrend trail: stop order at the Supertrend line, moved every bar; entries then require Supertrend to agree with the trade (nothing to trail otherwise).")
 sideIn   = input.string("Both", "Side", options=["Both", "Long only", "Short only"], group="Entry / exit")
 sqHHMM   = input.int(1515, "Square-off (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
 cutHHMM  = input.int(1500, "No new entries from (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
@@ -69,8 +71,9 @@ rsiShort = rsi < rsiLo
 b2i(bool x) => x ? 1 : 0
 longScore  = b2i(stLong) + b2i(pivLong) + b2i(bbLong) + b2i(rsiLong)
 shortScore = b2i(stShort) + b2i(pivShort) + b2i(bbShort) + b2i(rsiShort)
-longSig  = longScore >= minScore and longScore[1] < minScore
-shortSig = shortScore >= minScore and shortScore[1] < minScore
+isTrail  = exitMode == "Supertrend trail"
+longSig  = longScore >= minScore and longScore[1] < minScore and (not isTrail or stLong)
+shortSig = shortScore >= minScore and shortScore[1] < minScore and (not isTrail or stShort)
 
 // --- Conditions that were true at entry (for "any flip" exits) ---
 var bool eST = false
@@ -79,8 +82,8 @@ var bool eBB = false
 var bool eRS = false
 flipLong  = (eST and not stLong) or (ePV and not pivLong) or (eBB and not bbLong) or (eRS and not rsiLong)
 flipShort = (eST and not stShort) or (ePV and not pivShort) or (eBB and not bbShort) or (eRS and not rsiShort)
-exitLong  = exitMode == "Any entry condition flips" ? flipLong : exitMode == "Supertrend flip only" ? not stLong : longScore < minScore
-exitShort = exitMode == "Any entry condition flips" ? flipShort : exitMode == "Supertrend flip only" ? not stShort : shortScore < minScore
+exitLong  = isTrail or exitMode == "Supertrend flip only" ? not stLong : exitMode == "Any entry condition flips" ? flipLong : longScore < minScore
+exitShort = isTrail or exitMode == "Supertrend flip only" ? not stShort : exitMode == "Any entry condition flips" ? flipShort : shortScore < minScore
 
 // --- Session rules ---
 hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
@@ -113,6 +116,13 @@ else
         eBB := bbShort
         eRS := rsiShort
         strategy.entry("Short", strategy.short, comment="S" + str.tostring(shortScore))
+
+// --- Supertrend trailing stop: re-placed every bar at the current line ---
+if isTrail and not atSquareOff
+    if stLong
+        strategy.exit("Trail L", "Long", stop=stLine, comment="ST trail")
+    if stShort
+        strategy.exit("Trail S", "Short", stop=stLine, comment="ST trail")
 
 // --- Visuals ---
 plot(stLine, "Supertrend", color=stLong ? color.green : color.red, style=plot.style_linebr)

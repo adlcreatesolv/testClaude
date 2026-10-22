@@ -113,11 +113,13 @@ more than half the months profitable, both sides profitable.
 
 **Overall status: NOT YET TESTED.** Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
 
+2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
+
 Interpretation choices (to confirm): crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30); entry when the score first reaches ≥ 3; exit when any condition true at entry turns false.
 
 ### Queue
 | ID | Plan | Status |
 |---|---|---|
-| E18 | Defaults, NSE:NIFTY 5m (longest history available) and 15m, cost 1 pt | PENDING |
-| E19 | Same, Exit on = Supertrend flip only | PENDING |
+| E18 | Defaults (exit = Supertrend trail), NSE:NIFTY 5m (longest history available) and 15m, cost 1 pt | PENDING |
+| E19 | Same, Exit on = Any entry condition flips (user's original exit rule) | PENDING |
 | E20 | Same, Conditions needed = 4 | PENDING |
