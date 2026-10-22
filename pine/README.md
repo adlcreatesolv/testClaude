@@ -23,7 +23,7 @@ File naming: `<Name>.original.pine`, `<Name>[.<variant>].dev.pine`.
 | `dev/avi_regV2_Strategy.intraday.dev.pine` | DEV | TESTED (MIXED) | Interday dev + Intraday mode (default; 15:15 square-off, 15:00 cutoff) | 30m, 2020–2026, 1 pt cost: +5,627 pts, PF 1.20, maxDD −2,199 |
 | `dev/avi_regV2_Strategy.regime.dev.pine` | DEV | **REJECTED** (E15) | Interday dev + daily ADX(14) > 20 regime filter for entries + optional drawdown kill switch | 30m, 2020–2026, 1 pt cost: +11,808 pts, PF 1.27, maxDD −3,416 |
 | `dev/Confluence4_Intraday.dev.pine` | DEV | SUPERSEDED | From user spec (no original script): Supertrend(10,3), daily pivot R1/S1, BB(20,2), RSI(14) 70/30; enter when all 4 agree; 5 exit types (any flip, or Supertrend / pivot / Bollinger / RSI flip) + Supertrend trail option; intraday NIFTY | — |
-| `dev/QuadConfluenceBreakout.dev.pine` | DEV | UNDER TEST (2/10 runs) | **Quad Confluence Breakout (QCB).** One strategy, all choices as inputs: tick any of Supertrend / Pivot R1-S1 / Bollinger / RSI for entry (all ticked must agree), 6 exit types, Intraday/Interday, side. Setup tag written into every entry comment and a chart table | E19 5m 2009–2026: +9,448 pts, PF 1.35, maxDD −1,080 |
+| `dev/QuadConfluenceBreakout.dev.pine` | DEV | UNDER TEST (3/10 runs) | **Quad Confluence Breakout (QCB).** One strategy, all choices as inputs: tick any of Supertrend / Pivot R1-S1 / Bollinger / RSI for entry (all ticked must agree), 6 exit types, Intraday/Interday, side. Setup tag written into every entry comment and a chart table | E19 5m 2009–2026: +9,448 pts, PF 1.35, maxDD −1,080 |
 
 ## OBV_Cross_Auto development history
 
