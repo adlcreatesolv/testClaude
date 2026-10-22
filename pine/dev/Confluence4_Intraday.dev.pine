@@ -1,6 +1,6 @@
 // ============================================================================
 // TAG:          DEV
-// STATUS:       NOT YET TESTED (experiment E18)
+// STATUS:       SUPERSEDED by pine/dev/Confluence_Select.dev.pine (never tested)
 // CHANGES:      2026-10-22 default exit = Supertrend trailing stop (user request).
 //               2026-10-22 entry clarified by user: all 4 must agree, with 3
 //               already aligned and the 4th just flipping (score 3 -> 4).

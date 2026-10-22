@@ -25,6 +25,7 @@ def load(path):
         "exit_sig": ex["Signal"],
         "pnl": en["Net PnL NONE"],
         "bars": en["Duration (bars)"],
+        "entry_sig": en["Signal"],
     })
 
 
@@ -66,6 +67,9 @@ def report(path, cost):
 
     print("=" * 80)
     print(path)
+    tags = t.entry_sig.str.split(" ", n=1).str[1].dropna().unique()
+    if len(tags) and "|" in str(tags[0]):
+        print("Setup tag:", ", ".join(map(str, tags)))
     print(f"Period {c.entry.min()} -> {c.exit.max()} | {days} days | "
           f"{len(c) / days:.1f} trades/day | open: {t.exit.isna().sum()} | "
           f"overnight: {len(overnight)}")

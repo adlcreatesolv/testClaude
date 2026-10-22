@@ -1,0 +1,171 @@
+// ============================================================================
+// TAG:          DEV
+// STATUS:       NOT YET TESTED (runs E18-E22, E18i-E22i)
+// NAME:         Confluence Select (Supertrend / Pivot / Bollinger / RSI)
+// FILE:         pine/dev/Confluence_Select.dev.pine
+// DERIVED FROM: pine/dev/Confluence4_Intraday.dev.pine (user's spec,
+//               2026-10-22; no original script)
+// DESCRIPTION:  One strategy, every choice is an input:
+//               ENTRY  - tick any of the 4 conditions; entry when ALL ticked
+//                        conditions are true on this bar and were not all
+//                        true on the previous bar.
+//                        LONG : Supertrend up | close > daily R1 |
+//                               close > upper BB | RSI > 70
+//                        SHORT: Supertrend down | close < daily S1 |
+//                               close < lower BB | RSI < 30
+//               EXIT   - 1 any ticked condition turns false, 2 Supertrend
+//                        flips, 3 pivot flips, 4 Bollinger flips, 5 RSI flips
+//                        (2-5 = that condition turns from true to false),
+//                        6 Supertrend trailing stop.
+//               MODE   - Intraday (no entries from 15:00, square-off 15:25)
+//                        or Interday (held overnight).
+//               SIDE   - Both / Long only / Short only.
+// NAMING:       Every entry's comment carries the full setup, e.g.
+//               "L ST+PV+BB+RSI|X1|INTRA|L|15", so each exported trade list
+//               shows exactly what was selected (Signal column). The same
+//               setup is shown in a table on the chart.
+// KNOWN ISSUES: Exits 2-5 on a condition that is NOT ticked for entry wait
+//               for it to turn true and then false; in Interday mode that
+//               can hold a trade for a long time.
+// ============================================================================
+//@version=5
+strategy("Confluence Select (ST / Pivot / BB / RSI)", shorttitle="CFS", overlay=true, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+
+// --- Inputs: entry conditions ---
+gE = "Entry: all ticked conditions must agree"
+useST    = input.bool(true, "Supertrend", inline="st", group=gE)
+stFactor = input.float(3.0, "factor", minval=0.1, inline="st", group=gE)
+stLen    = input.int(10, "ATR length", minval=1, inline="st", group=gE)
+usePV    = input.bool(true, "Pivot R1 / S1 (daily, classic)", group=gE)
+useBB    = input.bool(true, "Bollinger", inline="bb", group=gE)
+bbLen    = input.int(20, "length", minval=1, inline="bb", group=gE)
+bbMult   = input.float(2.0, "std dev", minval=0.1, inline="bb", group=gE)
+useRSI   = input.bool(true, "RSI", inline="rsi", group=gE)
+rsiLen   = input.int(14, "length", minval=1, inline="rsi", group=gE)
+rsiHi    = input.float(70, "long above", inline="rsi", group=gE)
+rsiLo    = input.float(30, "short below", inline="rsi", group=gE)
+
+// --- Inputs: exit, mode, side ---
+gX = "Exit / mode / side"
+exitMode = input.string("1 Any ticked condition flips", "Exit on", options=["1 Any ticked condition flips", "2 Supertrend flips", "3 Pivot flips", "4 Bollinger flips", "5 RSI flips", "6 Supertrend trail"], group=gX)
+modeIn   = input.string("Intraday", "Mode", options=["Intraday", "Interday"], group=gX)
+sideIn   = input.string("Long only", "Side", options=["Both", "Long only", "Short only"], group=gX)
+sqHHMM   = input.int(1525, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530, group=gX)
+cutHHMM  = input.int(1500, "Intraday: no new entries from (IST hhmm)", minval=900, maxval=1530, group=gX)
+showTbl  = input.bool(true, "Show setup table", group=gX)
+
+// --- Condition 1: Supertrend (direction < 0 = uptrend in Pine v5) ---
+[stLine, stDir] = ta.supertrend(stFactor, stLen)
+stLong  = stDir < 0
+stShort = stDir > 0
+
+// --- Condition 2: classic daily pivots from the previous completed day ---
+[pH, pL, pC] = request.security(syminfo.tickerid, "D", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+pp = (pH + pL + pC) / 3
+r1 = 2 * pp - pL
+s1 = 2 * pp - pH
+pivLong  = close > r1
+pivShort = close < s1
+
+// --- Condition 3: Bollinger Bands ---
+[bbMid, bbUp, bbLo] = ta.bb(close, bbLen, bbMult)
+bbLong  = close > bbUp
+bbShort = close < bbLo
+
+// --- Condition 4: RSI ---
+rsi = ta.rsi(close, rsiLen)
+rsiLong  = rsi > rsiHi
+rsiShort = rsi < rsiLo
+
+// --- Entry: all ticked conditions true now, not all true on the previous bar ---
+nSel     = (useST ? 1 : 0) + (usePV ? 1 : 0) + (useBB ? 1 : 0) + (useRSI ? 1 : 0)
+allLong  = (not useST or stLong) and (not usePV or pivLong) and (not useBB or bbLong) and (not useRSI or rsiLong)
+allShort = (not useST or stShort) and (not usePV or pivShort) and (not useBB or bbShort) and (not useRSI or rsiShort)
+longSig  = nSel > 0 and allLong and not allLong[1]
+shortSig = nSel > 0 and allShort and not allShort[1]
+
+// --- Exit: a condition "flips" when it goes from true to false ---
+stOffL  = stLong[1] and not stLong
+pvOffL  = pivLong[1] and not pivLong
+bbOffL  = bbLong[1] and not bbLong
+rsOffL  = rsiLong[1] and not rsiLong
+stOffS  = stShort[1] and not stShort
+pvOffS  = pivShort[1] and not pivShort
+bbOffS  = bbShort[1] and not bbShort
+rsOffS  = rsiShort[1] and not rsiShort
+exitNo  = str.substring(exitMode, 0, 1)
+isTrail = exitNo == "6"
+exitLong  = exitNo == "1" ? not allLong : exitNo == "2" ? stOffL : exitNo == "3" ? pvOffL : exitNo == "4" ? bbOffL : exitNo == "5" ? rsOffL : not stLong
+exitShort = exitNo == "1" ? not allShort : exitNo == "2" ? stOffS : exitNo == "3" ? pvOffS : exitNo == "4" ? bbOffS : exitNo == "5" ? rsOffS : not stShort
+
+// --- Session rules ---
+hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
+isIntraday  = modeIn == "Intraday"
+atSquareOff = isIntraday and hhmmClose >= sqHHMM
+canEnter    = not isIntraday or hhmmClose < cutHHMM
+staleCarry  = isIntraday and timeframe.change("D") and strategy.position_size != 0
+wantLong    = sideIn != "Short only"
+wantShort   = sideIn != "Long only"
+
+// --- Setup name, written into every entry comment (Signal column of the export) ---
+var string condTag = ""
+if barstate.isfirst
+    t = ""
+    t := useST ? t + "ST+" : t
+    t := usePV ? t + "PV+" : t
+    t := useBB ? t + "BB+" : t
+    t := useRSI ? t + "RSI+" : t
+    condTag := str.length(t) > 0 ? str.substring(t, 0, str.length(t) - 1) : "NONE"
+modeTag = isIntraday ? "INTRA" : "INTER"
+sideTag = sideIn == "Both" ? "LS" : sideIn == "Long only" ? "L" : "S"
+cfgTag  = condTag + "|X" + exitNo + "|" + modeTag + "|" + sideTag + "|" + timeframe.period
+exitTag = "X" + exitNo + " exit"
+
+// --- Execution ---
+if atSquareOff
+    // Fill on this bar's close, not the next bar's open (= next morning).
+    strategy.close_all(comment="square-off", immediately=true)
+else
+    if staleCarry
+        strategy.close_all(comment="stale carry", immediately=true)
+    if strategy.position_size > 0 and exitLong
+        strategy.close("Long", comment=exitTag)
+    if strategy.position_size < 0 and exitShort
+        strategy.close("Short", comment=exitTag)
+    if longSig and wantLong and canEnter and strategy.position_size <= 0
+        strategy.entry("Long", strategy.long, comment="L " + cfgTag)
+    else if shortSig and wantShort and canEnter and strategy.position_size >= 0
+        strategy.entry("Short", strategy.short, comment="S " + cfgTag)
+
+// --- Exit 6: Supertrend trailing stop, re-placed every bar at the current line ---
+if isTrail and not atSquareOff
+    if stLong
+        strategy.exit("Trail L", "Long", stop=stLine, comment="X6 ST trail")
+    if stShort
+        strategy.exit("Trail S", "Short", stop=stLine, comment="X6 ST trail")
+
+// --- Setup table ---
+var table cfg = table.new(position.top_right, 2, 6, bgcolor=color.new(color.gray, 20), border_width=1)
+if showTbl and barstate.islast
+    table.cell(cfg, 0, 0, "Entry", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 0, condTag + (nSel == 0 ? "  (tick at least one!)" : ""), text_color=color.white, text_size=size.small)
+    table.cell(cfg, 0, 1, "Exit", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 1, exitMode, text_color=color.white, text_size=size.small)
+    table.cell(cfg, 0, 2, "Mode", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 2, isIntraday ? "Intraday (cutoff " + str.tostring(cutHHMM) + ", square-off " + str.tostring(sqHHMM) + ")" : "Interday", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 0, 3, "Side", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 3, sideIn, text_color=color.white, text_size=size.small)
+    table.cell(cfg, 0, 4, "Timeframe", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 4, timeframe.period, text_color=color.white, text_size=size.small)
+    table.cell(cfg, 0, 5, "Tag", text_color=color.white, text_size=size.small)
+    table.cell(cfg, 1, 5, cfgTag, text_color=color.white, text_size=size.small)
+
+// --- Visuals ---
+plot(stLine, "Supertrend", color=stLong ? color.green : color.red, style=plot.style_linebr)
+plot(bbUp, "BB upper", color=color.new(color.gray, 40))
+plot(bbLo, "BB lower", color=color.new(color.gray, 40))
+plot(r1, "Pivot R1", color=color.new(color.teal, 0), style=plot.style_circles, linewidth=1)
+plot(s1, "Pivot S1", color=color.new(color.maroon, 0), style=plot.style_circles, linewidth=1)
+plotshape(longSig and wantLong and canEnter, "Long signal", shape.triangleup, location.belowbar, color.green, size=size.tiny)
+plotshape(shortSig and wantShort and canEnter, "Short signal", shape.triangledown, location.abovebar, color.red, size=size.tiny)
+plot(rsi, "RSI", display=display.data_window)
