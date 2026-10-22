@@ -106,3 +106,18 @@ more than half the months profitable, both sides profitable.
 | E17 | Skip-after-whipsaw rule (A24) as a Pine option, fixed at ≤ 2 bars, tested only on data not yet seen (e.g. NSE:FINNIFTY or BSE:SENSEX 30m, and NIFTY 15m) | PROPOSED |
 | E16 | Forward/paper test: NIFTY interday (E09 settings) from 2026-10-14, log every live signal and fill vs backtest | PROPOSED |
 | E15 | Regime filter to skip choppy markets (candidates: daily ADX, regression R² 'trendiness'); rule fixed on 2020–2023, judged only on 2024–2026 (R5). Motivated by A16. Script: `pine/dev/avi_regV2_Strategy.regime.dev.pine` (daily ADX(14) > 20, fixed in advance; kill switch off by default). | DONE — FAIL (A17) |
+
+---
+
+## Strategy 3: Confluence4 Intraday (`pine/dev/Confluence4_Intraday.dev.pine`)
+
+**Overall status: NOT YET TESTED.** Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
+
+Interpretation choices (to confirm): crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30); entry when the score first reaches ≥ 3; exit when any condition true at entry turns false.
+
+### Queue
+| ID | Plan | Status |
+|---|---|---|
+| E18 | Defaults, NSE:NIFTY 5m (longest history available) and 15m, cost 1 pt | PENDING |
+| E19 | Same, Exit on = Supertrend flip only | PENDING |
+| E20 | Same, Conditions needed = 4 | PENDING |

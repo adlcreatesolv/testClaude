@@ -1,0 +1,127 @@
+// ============================================================================
+// TAG:          DEV
+// STATUS:       NOT YET TESTED (experiment E18)
+// NAME:         Confluence4 Intraday (Supertrend, Pivot R1/S1, Bollinger, RSI)
+// FILE:         pine/dev/Confluence4_Intraday.dev.pine
+// DERIVED FROM: User's strategy spec, 2026-10-22 (no original script):
+//               "Supertrend (10,3) is long, pivot points R1 crossed, Bollinger
+//               band 2 SD crossed up or down, RSI over 70. Any 3 true, 4th can
+//               give entry, any one flip can be exits. Intraday NIFTY."
+// DESCRIPTION:  Four conditions per side, scored 0-4.
+//               LONG:  Supertrend(10,3) up | close > daily pivot R1 |
+//                      close > upper BB(20,2) | RSI(14) > 70
+//               SHORT: Supertrend(10,3) down | close < daily pivot S1 |
+//                      close < lower BB(20,2) | RSI(14) < 30
+//               Entry when the score reaches >= 3 (input) on this bar.
+//               Exit (default) when ANY condition that was true at entry
+//               turns false. Alternatives: Supertrend flip only, or score
+//               drops below the threshold.
+//               Intraday: same-bar 15:15 IST square-off, no entries from
+//               15:00, stale-carry close. Fixed 1 unit, 1 pt round-trip cost.
+// INTERPRETATION (confirm with user): "crossed" is treated as a state (close
+//               is beyond R1 / the band), because one-bar cross events almost
+//               never coincide. Pivots = classic daily, from previous day.
+// KNOWN ISSUES: All four conditions are momentum/overbought measures, so they
+//               are highly correlated. "Any flip" exits (esp. BB, RSI) can be
+//               very quick, so costs matter.
+// ============================================================================
+//@version=5
+strategy("Confluence4 Intraday (ST, Pivot, BB, RSI)", shorttitle="CF4", overlay=true, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+
+// --- Inputs ---
+stFactor = input.float(3.0, "Supertrend factor", minval=0.1, group="Conditions")
+stLen    = input.int(10, "Supertrend ATR length", minval=1, group="Conditions")
+bbLen    = input.int(20, "Bollinger length", minval=1, group="Conditions")
+bbMult   = input.float(2.0, "Bollinger std dev", minval=0.1, group="Conditions")
+rsiLen   = input.int(14, "RSI length", minval=1, group="Conditions")
+rsiHi    = input.float(70, "RSI long above", group="Conditions")
+rsiLo    = input.float(30, "RSI short below", group="Conditions")
+minScore = input.int(3, "Conditions needed for entry (of 4)", minval=1, maxval=4, group="Entry / exit")
+exitMode = input.string("Any entry condition flips", "Exit on", options=["Any entry condition flips", "Supertrend flip only", "Score below threshold"], group="Entry / exit")
+sideIn   = input.string("Both", "Side", options=["Both", "Long only", "Short only"], group="Entry / exit")
+sqHHMM   = input.int(1515, "Square-off (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
+cutHHMM  = input.int(1500, "No new entries from (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
+
+// --- Condition 1: Supertrend (direction < 0 = uptrend in Pine v5) ---
+[stLine, stDir] = ta.supertrend(stFactor, stLen)
+stLong  = stDir < 0
+stShort = stDir > 0
+
+// --- Condition 2: classic daily pivots from the previous completed day ---
+[pH, pL, pC] = request.security(syminfo.tickerid, "D", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+pp = (pH + pL + pC) / 3
+r1 = 2 * pp - pL
+s1 = 2 * pp - pH
+pivLong  = close > r1
+pivShort = close < s1
+
+// --- Condition 3: Bollinger Bands ---
+[bbMid, bbUp, bbLo] = ta.bb(close, bbLen, bbMult)
+bbLong  = close > bbUp
+bbShort = close < bbLo
+
+// --- Condition 4: RSI ---
+rsi = ta.rsi(close, rsiLen)
+rsiLong  = rsi > rsiHi
+rsiShort = rsi < rsiLo
+
+// --- Scores ---
+b2i(bool x) => x ? 1 : 0
+longScore  = b2i(stLong) + b2i(pivLong) + b2i(bbLong) + b2i(rsiLong)
+shortScore = b2i(stShort) + b2i(pivShort) + b2i(bbShort) + b2i(rsiShort)
+longSig  = longScore >= minScore and longScore[1] < minScore
+shortSig = shortScore >= minScore and shortScore[1] < minScore
+
+// --- Conditions that were true at entry (for "any flip" exits) ---
+var bool eST = false
+var bool ePV = false
+var bool eBB = false
+var bool eRS = false
+flipLong  = (eST and not stLong) or (ePV and not pivLong) or (eBB and not bbLong) or (eRS and not rsiLong)
+flipShort = (eST and not stShort) or (ePV and not pivShort) or (eBB and not bbShort) or (eRS and not rsiShort)
+exitLong  = exitMode == "Any entry condition flips" ? flipLong : exitMode == "Supertrend flip only" ? not stLong : longScore < minScore
+exitShort = exitMode == "Any entry condition flips" ? flipShort : exitMode == "Supertrend flip only" ? not stShort : shortScore < minScore
+
+// --- Session rules ---
+hhmmClose   = hour(time_close, "Asia/Kolkata") * 100 + minute(time_close, "Asia/Kolkata")
+atSquareOff = hhmmClose >= sqHHMM
+canEnter    = hhmmClose < cutHHMM
+staleCarry  = timeframe.change("D") and strategy.position_size != 0
+wantLong    = sideIn != "Short only"
+wantShort   = sideIn != "Long only"
+
+// --- Execution ---
+if atSquareOff
+    // Fill on this bar's close, not the next bar's open (= next morning).
+    strategy.close_all(comment="square-off", immediately=true)
+else
+    if staleCarry
+        strategy.close_all(comment="stale carry", immediately=true)
+    if strategy.position_size > 0 and exitLong
+        strategy.close("Long", comment="flip")
+    if strategy.position_size < 0 and exitShort
+        strategy.close("Short", comment="flip")
+    if longSig and wantLong and canEnter and strategy.position_size <= 0
+        eST := stLong
+        ePV := pivLong
+        eBB := bbLong
+        eRS := rsiLong
+        strategy.entry("Long", strategy.long, comment="L" + str.tostring(longScore))
+    else if shortSig and wantShort and canEnter and strategy.position_size >= 0
+        eST := stShort
+        ePV := pivShort
+        eBB := bbShort
+        eRS := rsiShort
+        strategy.entry("Short", strategy.short, comment="S" + str.tostring(shortScore))
+
+// --- Visuals ---
+plot(stLine, "Supertrend", color=stLong ? color.green : color.red, style=plot.style_linebr)
+plot(bbUp, "BB upper", color=color.new(color.gray, 40))
+plot(bbLo, "BB lower", color=color.new(color.gray, 40))
+plot(r1, "Pivot R1", color=color.new(color.teal, 0), style=plot.style_circles, linewidth=1)
+plot(s1, "Pivot S1", color=color.new(color.maroon, 0), style=plot.style_circles, linewidth=1)
+plotshape(longSig and wantLong and canEnter, "Long signal", shape.triangleup, location.belowbar, color.green, size=size.tiny)
+plotshape(shortSig and wantShort and canEnter, "Short signal", shape.triangledown, location.abovebar, color.red, size=size.tiny)
+plot(longScore, "Long score", display=display.data_window)
+plot(shortScore, "Short score", display=display.data_window)
+plot(rsi, "RSI", display=display.data_window)
