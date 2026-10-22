@@ -109,7 +109,7 @@ more than half the months profitable, both sides profitable.
 
 ---
 
-## Strategy 3: Confluence Select (`pine/dev/Confluence_Select.dev.pine`, replaces `Confluence4_Intraday.dev.pine`)
+## Strategy 3: Quad Confluence Breakout — QCB (`pine/dev/QuadConfluenceBreakout.dev.pine`, replaces `Confluence4_Intraday.dev.pine`)
 
 **Overall status: NOT YET TESTED.** Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
 
@@ -121,7 +121,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 
 2026-10-22 user: **test long only** (Side = Long only) for all planned runs E18–E22 and E18i–E22i.
 
-2026-10-22 user: **one strategy with selectable conditions** → `Confluence_Select.dev.pine`. Each entry condition can be ticked on/off (entry = all ticked agree), exit / mode / side are inputs, and every entry comment carries a setup tag like `L ST+PV+BB+RSI|X1|INTRA|L|15` (conditions | exit no. | mode | side | timeframe), so each export identifies its run. Planned runs below unchanged (all 4 ticked). Possible combinations: 15 condition sets × 6 exits × 2 modes × 3 sides = 540 per timeframe; only the 10 planned are to be run.
+2026-10-22 user: **one strategy with selectable conditions** → `QuadConfluenceBreakout.dev.pine`. Each entry condition can be ticked on/off (entry = all ticked agree), exit / mode / side are inputs, and every entry comment carries a setup tag like `L QCB ST+PV+BB+RSI|X1|INTRA|L|15` (conditions | exit no. | mode | side | timeframe), so each export identifies its run. Planned runs below unchanged (all 4 ticked). Possible combinations: 15 condition sets × 6 exits × 2 modes × 3 sides = 540 per timeframe; only the 10 planned are to be run.
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |

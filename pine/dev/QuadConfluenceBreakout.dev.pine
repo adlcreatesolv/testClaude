@@ -1,8 +1,9 @@
 // ============================================================================
 // TAG:          DEV
 // STATUS:       NOT YET TESTED (runs E18-E22, E18i-E22i)
-// NAME:         Confluence Select (Supertrend / Pivot / Bollinger / RSI)
-// FILE:         pine/dev/Confluence_Select.dev.pine
+// NAME:         Quad Confluence Breakout (QCB)
+//               Supertrend + Pivot R1/S1 + Bollinger + RSI, selectable
+// FILE:         pine/dev/QuadConfluenceBreakout.dev.pine
 // DERIVED FROM: pine/dev/Confluence4_Intraday.dev.pine (user's spec,
 //               2026-10-22; no original script)
 // DESCRIPTION:  One strategy, every choice is an input:
@@ -21,7 +22,7 @@
 //                        or Interday (held overnight).
 //               SIDE   - Both / Long only / Short only.
 // NAMING:       Every entry's comment carries the full setup, e.g.
-//               "L ST+PV+BB+RSI|X1|INTRA|L|15", so each exported trade list
+//               "L QCB ST+PV+BB+RSI|X1|INTRA|L|15", so each exported trade list
 //               shows exactly what was selected (Signal column). The same
 //               setup is shown in a table on the chart.
 // KNOWN ISSUES: Exits 2-5 on a condition that is NOT ticked for entry wait
@@ -29,7 +30,7 @@
 //               can hold a trade for a long time.
 // ============================================================================
 //@version=5
-strategy("Confluence Select (ST / Pivot / BB / RSI)", shorttitle="CFS", overlay=true, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
+strategy("Quad Confluence Breakout (ST + Pivot + BB + RSI)", shorttitle="QCB", overlay=true, initial_capital=100000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.cash_per_order, commission_value=0.5, slippage=0)   // 0.5 pt per order = 1 pt per round trip
 
 // --- Inputs: entry conditions ---
 gE = "Entry: all ticked conditions must agree"
@@ -118,7 +119,7 @@ if barstate.isfirst
     condTag := str.length(t) > 0 ? str.substring(t, 0, str.length(t) - 1) : "NONE"
 modeTag = isIntraday ? "INTRA" : "INTER"
 sideTag = sideIn == "Both" ? "LS" : sideIn == "Long only" ? "L" : "S"
-cfgTag  = condTag + "|X" + exitNo + "|" + modeTag + "|" + sideTag + "|" + timeframe.period
+cfgTag  = "QCB " + condTag + "|X" + exitNo + "|" + modeTag + "|" + sideTag + "|" + timeframe.period
 exitTag = "X" + exitNo + " exit"
 
 // --- Execution ---
