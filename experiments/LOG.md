@@ -131,6 +131,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E20 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X3\|INTRA\|L\|5` (all 4, exit on pivot flip, intraday, long) | 1,657 | +9,309 | — | 1.34 | −1,176 | MIXED (≈ E19, slightly worse) | `E20_QCB_all4-X3-intra-long_5m.csv` |
 | E21 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X4\|INTRA\|L\|5` (all 4, exit on Bollinger flip, intraday, long) | 2,447 | +1,081 | — | 1.09 | −632 | FAIL | `E21_QCB_all4-X4-intra-long_5m.csv` |
 | E22 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X5\|INTRA\|L\|5` (all 4, exit on RSI flip, intraday, long) | 2,310 | +4,330 | — | 1.29 | −713 | FAIL (≈ break-even after % cost) | `E22_QCB_all4-X5-intra-long_5m.csv` |
+| E19t (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X6\|INTRA\|L\|5` (all 4, **Supertrend trailing stop**, intraday, long) — extra variant, not in the 10 planned | 1,600 | +9,572 | — | 1.39 | −1,078 | MIXED (≈ E19) | `E19t_QCB_all4-X6trail-intra-long_5m.csv` |
 
 ### Analyses / findings
 
@@ -143,6 +144,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | A29 | E21 | **Bollinger-flip exit fails.** Close drops back inside the upper band almost immediately (median 2 bars), so 2,447 tiny trades: avg win +0.12% vs loss −0.08%; at 0.02%/trade PF 0.82, compounded −20%, maxDD −21%, only 5/18 years green; negative in every sub-period. Only +1,081 pts with the unrealistically cheap fixed 1-pt cost. The breakout move needs room beyond the band to pay. | FAIL |
 | A30 | E22 | **RSI-flip exit ≈ break-even.** RSI drops back below 70 quickly (median 3 bars): 2,310 trades, avg win +0.22% vs loss −0.10%; at 0.02%/trade PF 1.11, compounded +17%, maxDD −7.6%, 10/18 years green; PF 1.20 (2009–17) → 1.04 → 0.98 (2023+). Points view (+4,330, PF 1.29) flatters it because the 1-pt cost is tiny in early years. | FAIL |
 | A31 | E19–E22 | **Intraday exit ranking (5m, 2009–2026, 0.02% cost):** Supertrend flip (PF 1.39, +145%, DD −9.1%) > pivot flip (1.33, +129%, −11.7%) >> RSI flip (1.11, +17%) > Bollinger flip (0.82, −20%). Exits that wait for the trend to break beat exits that react to the overbought reading fading. All versions show the post-2017 decay. | INFO |
+| A32 | E19t vs E19 | **Supertrend trail ≈ Supertrend flip** (as expected, it is the intrabar version). At 0.02%/trade: PF 1.43 vs 1.39, compounded +150% vs +145%, maxDD −9.9% vs −9.1%, green years 15/18 vs 14/18; smaller avg loss (−0.25% vs −0.29%) because the stop fills at the line instead of the bar close. Same decay: PF 1.77 → 1.16 → 1.13 (2023+). Differences are within noise; no reason to prefer either. Upload of the same file twice (E22 duplicate) was caught by checksum and not logged. | INFO |
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |
@@ -153,5 +155,5 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:25 | 4 Bollinger flips | DONE on 5m — FAIL (A29) |
 | E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:25 | 5 RSI flips | DONE on 5m — FAIL (A30) |
 | E23 | NSE:BANKNIFTY | Same | Best of E18–E22, unchanged | (best) | PENDING |
-| — | — | Supertrend trailing stop kept as an extra option (intrabar version of E19); not in the plan | — | Supertrend trail | NOT PLANNED |
+| — | — | Supertrend trailing stop kept as an extra option (intrabar version of E19); not in the plan | — | Supertrend trail | RUN as extra variant E19t (A32) |
 | E18i–E22i | NSE:NIFTY | Same as E18–E22 with **Mode = Interday** (held overnight, no square-off / entry cutoff) | Same exit types, no 15:25 | 1–5 | PENDING (planned 2026-10-22: 10 versions per timeframe = 5 exits × Intraday/Interday, Side = Long only) |
