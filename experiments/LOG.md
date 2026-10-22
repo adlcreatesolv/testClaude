@@ -111,7 +111,7 @@ more than half the months profitable, both sides profitable.
 
 ## Strategy 3: Quad Confluence Breakout — QCB (`pine/dev/QuadConfluenceBreakout.dev.pine`, replaces `Confluence4_Intraday.dev.pine`)
 
-**Overall status: UNDER TEST — one candidate (E19i, 60m interday Supertrend exit, A36)**; 7 of 10 runs done (intraday complete on 5m; interday on 60m: E18i, E19i). Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
+**Overall status: UNDER TEST — two candidates: E19i (60m interday, Supertrend exit, A36) and E20i (60m interday, pivot exit, A37)**; 8 of 10 runs done (intraday complete on 5m; interday on 60m: E18i, E19i, E20i). Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
 
@@ -135,6 +135,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E19t (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X6\|INTRA\|L\|5` (all 4, **Supertrend trailing stop**, intraday, long) — extra variant, not in the 10 planned | 1,600 | +9,572 | — | 1.39 | −1,078 | MIXED (≈ E19) | `E19t_QCB_all4-X6trail-intra-long_5m.csv` |
 | E18i (60m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **60m**, 2009-02 → 2026-08 | `QCB ST+PV+BB+RSI\|X1\|INTER\|L\|60` (all 4, any flip, **interday**, long) | 426 | +1,212 | — | 1.22 | −584 | FAIL (recent years negative) | `E18i_QCB_all4-X1-inter-long_60m.csv` |
 | E19i (60m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **60m**, 2009-02 → 2026-08 | `QCB ST+PV+BB+RSI\|X2\|INTER\|L\|60` (all 4, Supertrend flip, **interday**, long). User described it as intraday; the tag says INTER and was taken as correct | 218 | +9,803 | — | 1.87 | −1,272 | **CANDIDATE** (needs confirmation) | `E19i_QCB_all4-X2-inter-long_60m.csv` |
+| E20i (60m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **60m**, 2009-02 → 2026-08 | `QCB ST+PV+BB+RSI\|X3\|INTER\|L\|60` (all 4, pivot flip, interday, long) | 366 | +6,679 | — | 1.79 | −626 | **CANDIDATE** (needs confirmation) | `E20i_QCB_all4-X3-inter-long_60m.csv` |
 
 ### Analyses / findings
 
@@ -152,6 +153,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | A34 | E18–E22, E19t | **Intraday complete (5m, long, 2009–2026, 0.02% cost).** Ranking by PF: ST trail 1.43 ≈ ST flip 1.39 > pivot flip 1.33 ≫ RSI flip 1.11 > Bollinger flip 0.82 > any flip 0.78. Only the trend-break exits (Supertrend, pivot) are viable, and even they decayed to PF ≈ 1.13–1.19 since 2023. Next: interday runs (E18i–E22i). | INFO |
 | A35 | E18i (60m) | Any-flip exit, interday, **1-hour chart** (note: timeframe AND mode both differ from the 5m intraday runs, so the effect of each can't be separated). 426 trades (~24/yr), median 2 bars (2 hours), 103 held overnight. At 0.02%/trade: PF 1.26, compounded +13.5% over 17.5 years, maxDD −5.3%, 12/18 years green. **Decay is severe: PF 1.67 (2009–17) → 0.92 (2018–22) → 0.85 (2023+)**; net negative 2019–21 and 2023–24. Much better than the 5m intraday any-flip (PF 0.78) but not tradable today. | FAIL |
 | A36 | E19i (60m) | **First QCB candidate: hourly breakout held until Supertrend flips (a swing trade).** 218 trades (~12/yr), median hold 29 bars ≈ 6 days, 214 held overnight. At 0.02%/trade: avg +0.37%/trade (cost is irrelevant at this size), win% 48, avg win +1.78% vs loss −0.94%, **PF 1.76**, compounded +114%, maxDD −15%, 13/18 years green. **No decay**: PF 1.53 (2009–17) → 2.77 (2018–22) → 1.35 (2023+). Caveats: small sample (218 trades); worst year 2009 −14%; it is the best of 7 QCB variants tried so far, so some luck is likely; long-only in a strong bull market (in the market ~30% of the time vs buy & hold +700%). Must be confirmed unchanged on unseen data (BANKNIFTY 60m) before trusting it. | MIXED → CANDIDATE |
+| A37 | E20i vs E19i (60m) | **Pivot-flip exit, interday, 60m: the smoothest result so far.** 366 trades, median hold 5.5 bars ≈ 1 day, win% 54, avg win +0.66% vs loss −0.44%; at 0.02%/trade PF 1.77, compounded +74%, **maxDD −5.0%**, **16/18 years green**, PF stable 1.89 → 1.68 → 1.61 (2023+). Lower total return than E19i (+114%) but return/DD ≈ 15 vs 7.6 and far steadier year to year (E19i ranges −14% to +17%). Selection caveat: 8 QCB variants tried so far; the two 60m interday trend-break exits are the best two, so both must be confirmed on unseen data. | MIXED → CANDIDATE |
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |
@@ -162,6 +164,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:25 | 4 Bollinger flips | DONE on 5m — FAIL (A29) |
 | E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:25 | 5 RSI flips | DONE on 5m — FAIL (A30) |
 | E24 | NSE:BANKNIFTY | **E19i unchanged** (all 4, X2 Supertrend flip, Interday, Long, 60m) — confirmation on unseen data | same | 2 | PENDING (priority) |
+| E25 | NSE:BANKNIFTY | **E20i unchanged** (all 4, X3 pivot flip, Interday, Long, 60m) — confirmation on unseen data | same | 3 | PENDING (priority) |
 | E23 | NSE:BANKNIFTY | Same | Best of E18–E22, unchanged | (best) | PENDING |
 | — | — | Supertrend trailing stop kept as an extra option (intrabar version of E19); not in the plan | — | Supertrend trail | RUN as extra variant E19t (A32) |
-| E18i–E22i | NSE:NIFTY (E18i, E19i done on 60m: A35, A36) | Same as E18–E22 with **Mode = Interday** (held overnight, no square-off / entry cutoff) | Same exit types, no 15:25 | 1–5 | PENDING (planned 2026-10-22: 10 versions per timeframe = 5 exits × Intraday/Interday, Side = Long only) |
+| E18i–E22i | NSE:NIFTY (E18i, E19i, E20i done on 60m: A35–A37) | Same as E18–E22 with **Mode = Interday** (held overnight, no square-off / entry cutoff) | Same exit types, no 15:25 | 1–5 | PENDING (planned 2026-10-22: 10 versions per timeframe = 5 exits × Intraday/Interday, Side = Long only) |

@@ -6,6 +6,8 @@
 //               PF fell from 1.64 (2009-17) to 1.16 (2023-26).
 //               E19i 60m INTERDAY (all 4, X2, long): 218 trades, PF 1.76 at
 //               0.02%/trade, +114%, DD -15%, no decay -> CANDIDATE (confirm E24).
+//               E20i 60m INTERDAY (all 4, X3 pivot, long): 366 trades, PF 1.77,
+//               +74%, DD -5.0%, 16/18 years green -> CANDIDATE (confirm E25).
 // NAME:         Quad Confluence Breakout (QCB)
 //               Supertrend + Pivot R1/S1 + Bollinger + RSI, selectable
 // FILE:         pine/dev/QuadConfluenceBreakout.dev.pine
