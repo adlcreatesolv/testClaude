@@ -119,6 +119,8 @@ more than half the months profitable, both sides profitable.
 
 Interpretation choices: crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30).
 
+2026-10-22 user: **test long only** (Side = Long only) for all planned runs E18–E22 and E18i–E22i.
+
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |
 |---|---|---|---|---|---|
@@ -129,4 +131,4 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:25 | 5 RSI flips | PENDING |
 | E23 | NSE:BANKNIFTY | Same | Best of E18–E22, unchanged | (best) | PENDING |
 | — | — | Supertrend trailing stop kept as an extra option (intrabar version of E19); not in the plan | — | Supertrend trail | NOT PLANNED |
-| E18i–E22i | NSE:NIFTY | Same as E18–E22 with **Mode = Interday** (held overnight, no square-off / entry cutoff) | Same exit types, no 15:25 | 1–5 | PENDING (planned 2026-10-22: 10 versions per timeframe = 5 exits × Intraday/Interday, Side = Both) |
+| E18i–E22i | NSE:NIFTY | Same as E18–E22 with **Mode = Interday** (held overnight, no square-off / entry cutoff) | Same exit types, no 15:25 | 1–5 | PENDING (planned 2026-10-22: 10 versions per timeframe = 5 exits × Intraday/Interday, Side = Long only) |
