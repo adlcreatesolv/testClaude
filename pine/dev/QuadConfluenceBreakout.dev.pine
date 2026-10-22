@@ -1,6 +1,9 @@
 // ============================================================================
 // TAG:          DEV
-// STATUS:       NOT YET TESTED (runs E18-E22, E18i-E22i)
+// STATUS:       UNDER TEST (runs E18-E22, E18i-E22i)
+// TESTED:       E19 5m 2009-2026 (all 4, X2, intraday, long): 1,556 trades,
+//               +9,448 pts, PF 1.35; at 0.02%/trade cost PF 1.39, DD -9.1%;
+//               PF fell from 1.64 (2009-17) to 1.16 (2023-26).
 // NAME:         Quad Confluence Breakout (QCB)
 //               Supertrend + Pivot R1/S1 + Bollinger + RSI, selectable
 // FILE:         pine/dev/QuadConfluenceBreakout.dev.pine
