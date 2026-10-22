@@ -111,7 +111,7 @@ more than half the months profitable, both sides profitable.
 
 ## Strategy 3: Quad Confluence Breakout — QCB (`pine/dev/QuadConfluenceBreakout.dev.pine`, replaces `Confluence4_Intraday.dev.pine`)
 
-**Overall status: UNDER TEST** (4 of 10 runs done). Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
+**Overall status: UNDER TEST** (5 of 10 runs done; intraday complete). Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
 
@@ -127,6 +127,7 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 
 | ID | Date | Script | Chart, period | Settings (tag) | Trades | Net pts (1 pt cost) | Gross % sum | PF (pts) | Max DD (pts) | Status | Data |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| E18 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X1\|INTRA\|L\|5` (all 4, exit when any ticked condition flips, intraday, long) | 2,509 | +569 | — | 1.05 | −1,028 | FAIL | `E18_QCB_all4-X1-intra-long_5m.csv` |
 | E19 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10-21 | `QCB ST+PV+BB+RSI\|X2\|INTRA\|L\|5` (all 4, exit on Supertrend flip, intraday, long) | 1,556 | +9,448 | +123% | 1.35 | −1,080 | MIXED (edge fading) | `E19_QCB_all4-X2-intra-long_5m.csv` |
 | E20 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X3\|INTRA\|L\|5` (all 4, exit on pivot flip, intraday, long) | 1,657 | +9,309 | — | 1.34 | −1,176 | MIXED (≈ E19, slightly worse) | `E20_QCB_all4-X3-intra-long_5m.csv` |
 | E21 (5m) | 2026-10-22 | `pine/dev/QuadConfluenceBreakout.dev.pine` | NSE:NIFTY **5m**, 2009-02-06 → 2026-10 | `QCB ST+PV+BB+RSI\|X4\|INTRA\|L\|5` (all 4, exit on Bollinger flip, intraday, long) | 2,447 | +1,081 | — | 1.09 | −632 | FAIL | `E21_QCB_all4-X4-intra-long_5m.csv` |
@@ -145,11 +146,13 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | A30 | E22 | **RSI-flip exit ≈ break-even.** RSI drops back below 70 quickly (median 3 bars): 2,310 trades, avg win +0.22% vs loss −0.10%; at 0.02%/trade PF 1.11, compounded +17%, maxDD −7.6%, 10/18 years green; PF 1.20 (2009–17) → 1.04 → 0.98 (2023+). Points view (+4,330, PF 1.29) flatters it because the 1-pt cost is tiny in early years. | FAIL |
 | A31 | E19–E22 | **Intraday exit ranking (5m, 2009–2026, 0.02% cost):** Supertrend flip (PF 1.39, +145%, DD −9.1%) > pivot flip (1.33, +129%, −11.7%) >> RSI flip (1.11, +17%) > Bollinger flip (0.82, −20%). Exits that wait for the trend to break beat exits that react to the overbought reading fading. All versions show the post-2017 decay. | INFO |
 | A32 | E19t vs E19 | **Supertrend trail ≈ Supertrend flip** (as expected, it is the intrabar version). At 0.02%/trade: PF 1.43 vs 1.39, compounded +150% vs +145%, maxDD −9.9% vs −9.1%, green years 15/18 vs 14/18; smaller avg loss (−0.25% vs −0.29%) because the stop fills at the line instead of the bar close. Same decay: PF 1.77 → 1.16 → 1.13 (2023+). Differences are within noise; no reason to prefer either. Upload of the same file twice (E22 duplicate) was caught by checksum and not logged. | INFO |
+| A33 | E18 | **Any-flip exit (user's original exit rule) fails** — the worst of all: 2,509 trades, median 2 bars (the first condition to drop is almost always Bollinger or RSI), avg win +0.12% vs loss −0.08%; at 0.02%/trade PF 0.78, compounded −25%, maxDD −25.8%, 4/18 years green, negative in every sub-period. | FAIL |
+| A34 | E18–E22, E19t | **Intraday complete (5m, long, 2009–2026, 0.02% cost).** Ranking by PF: ST trail 1.43 ≈ ST flip 1.39 > pivot flip 1.33 ≫ RSI flip 1.11 > Bollinger flip 0.82 > any flip 0.78. Only the trend-break exits (Supertrend, pivot) are viable, and even they decayed to PF ≈ 1.13–1.19 since 2023. Next: interday runs (E18i–E22i). | INFO |
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |
 |---|---|---|---|---|---|
-| E18 | NSE:NIFTY | All 4 true on this bar, fewer than 4 on the previous bar; before 15:00 | **Any** of the 4 turns false; or 15:25 square-off | 1 Any condition flips | PENDING |
+| E18 | NSE:NIFTY | All 4 true on this bar, fewer than 4 on the previous bar; before 15:00 | **Any** of the 4 turns false; or 15:25 square-off | 1 Any condition flips | DONE on 5m — FAIL (A33) |
 | E19 | NSE:NIFTY | Same | **Supertrend** flips; or 15:25 | 2 Supertrend flips | DONE on 5m (A25–A27); other timeframes pending |
 | E20 | NSE:NIFTY | Same | **Pivot**: close back below R1 / above S1; or 15:25 | 3 Pivot flips | DONE on 5m (A28) |
 | E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:25 | 4 Bollinger flips | DONE on 5m — FAIL (A29) |
