@@ -22,7 +22,7 @@ File naming: `<Name>.original.pine`, `<Name>[.<variant>].dev.pine`.
 | `dev/avi_regV2_Strategy.interday.dev.pine` | DEV | **UNDER TEST (best version)** | Original logic, fixed 1 unit, 1 pt cost, built-in OBV option, Side filter | 30m, 2020–2026, 1 pt cost: +20,469 pts, PF 1.29, maxDD −3,397 |
 | `dev/avi_regV2_Strategy.intraday.dev.pine` | DEV | TESTED (MIXED) | Interday dev + Intraday mode (default; 15:15 square-off, 15:00 cutoff) | 30m, 2020–2026, 1 pt cost: +5,627 pts, PF 1.20, maxDD −2,199 |
 | `dev/avi_regV2_Strategy.regime.dev.pine` | DEV | **REJECTED** (E15) | Interday dev + daily ADX(14) > 20 regime filter for entries + optional drawdown kill switch | 30m, 2020–2026, 1 pt cost: +11,808 pts, PF 1.27, maxDD −3,416 |
-| `dev/Confluence4_Intraday.dev.pine` | DEV | NOT YET TESTED (E18) | From user spec (no original script): Supertrend(10,3), daily pivot R1/S1, BB(20,2), RSI(14) 70/30; enter when all 4 agree with the 4th just flipping, exit by Supertrend trailing stop (or any-flip option); intraday NIFTY | — |
+| `dev/Confluence4_Intraday.dev.pine` | DEV | NOT YET TESTED (E18) | From user spec (no original script): Supertrend(10,3), daily pivot R1/S1, BB(20,2), RSI(14) 70/30; enter when all 4 agree; 5 exit types (any flip, or Supertrend / pivot / Bollinger / RSI flip) + Supertrend trail option; intraday NIFTY | — |
 
 ## OBV_Cross_Auto development history
 
