@@ -115,12 +115,14 @@ more than half the months profitable, both sides profitable.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
 
-Interpretation choices (to confirm): crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30); entry when the score first reaches ≥ 3; exit when any condition true at entry turns false.
+2026-10-22 user clarification: **all 4 must agree for entry, with 3 already aligned and the 4th just flipping** (score 3 → 4). Exits: Supertrend trail (default) or any condition flips.
+
+Interpretation choices: crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30).
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Status |
 |---|---|---|---|---|
-| E18 | NSE:NIFTY | Supertrend(10,3) agrees **and** ≥ 2 of: close > R1 / < S1, close > upper BB / < lower BB (20,2), RSI(14) > 70 / < 30 (score ≥ 3 of 4, first bar it gets there); before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
-| E19 | NSE:NIFTY | Any 3 of the 4 (Supertrend not required); before 15:00 | Any condition that was true at entry turns false; or 15:15 square-off | PENDING |
-| E20 | NSE:NIFTY | All 4 true; before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
-| E21 | NSE:BANKNIFTY | Same as the best of E18–E20 | Same as the best of E18–E20 | PENDING |
+| E18 | NSE:NIFTY | All 4 true, with exactly 3 true on the previous bar (4th just flipped); before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
+| E19 | NSE:NIFTY | Same as E18 | Any of the 4 conditions turns false; or 15:15 square-off | PENDING |
+| E20 | — | (dropped 2026-10-22: '4 of 4' is now the entry rule for all runs) | — | DROPPED |
+| E21 | NSE:BANKNIFTY | Same as the better of E18/E19 | Same as the better of E18/E19 | PENDING |
