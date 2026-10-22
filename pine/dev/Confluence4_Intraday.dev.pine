@@ -4,6 +4,8 @@
 // CHANGES:      2026-10-22 default exit = Supertrend trailing stop (user request).
 //               2026-10-22 entry clarified by user: all 4 must agree, with 3
 //               already aligned and the 4th just flipping (score 3 -> 4).
+//               2026-10-22 user: several flipping on the same bar (e.g.
+//               2 -> 4) also counts, so entry = score becomes 4.
 // NAME:         Confluence4 Intraday (Supertrend, Pivot R1/S1, Bollinger, RSI)
 // FILE:         pine/dev/Confluence4_Intraday.dev.pine
 // DERIVED FROM: User's strategy spec, 2026-10-22 (no original script):
@@ -15,8 +17,8 @@
 //                      close > upper BB(20,2) | RSI(14) > 70
 //               SHORT: Supertrend(10,3) down | close < daily pivot S1 |
 //                      close < lower BB(20,2) | RSI(14) < 30
-//               Entry: all 4 true on this bar AND exactly 3 true on the
-//               previous bar (the 4th has just flipped into place).
+//               Entry: all 4 true on this bar AND fewer than 4 on the
+//               previous bar (last missing condition(s) just flipped in).
 //               Exit (default): trailing stop at the Supertrend line, moved
 //               every bar, or Supertrend flip. Option: exit when any of the
 //               4 conditions turns false.
@@ -73,10 +75,10 @@ b2i(bool x) => x ? 1 : 0
 longScore  = b2i(stLong) + b2i(pivLong) + b2i(bbLong) + b2i(rsiLong)
 shortScore = b2i(stShort) + b2i(pivShort) + b2i(bbShort) + b2i(rsiShort)
 isTrail  = exitMode == "Supertrend trail"
-// Entry: all 4 agree on this bar, and on the previous bar exactly 3 were
-// aligned, i.e. the 4th condition has just flipped into place.
-longSig  = longScore == 4 and longScore[1] == 3
-shortSig = shortScore == 4 and shortScore[1] == 3
+// Entry: all 4 agree on this bar and did not on the previous bar, i.e. the
+// last missing condition(s) just flipped into place (3 -> 4 or 2 -> 4 etc.).
+longSig  = longScore == 4 and longScore[1] < 4
+shortSig = shortScore == 4 and shortScore[1] < 4
 
 // Exit: trail mode exits on the stop (below) or a Supertrend flip; the
 // other mode exits as soon as any of the 4 conditions turns false.

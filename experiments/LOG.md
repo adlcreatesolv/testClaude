@@ -115,14 +115,14 @@ more than half the months profitable, both sides profitable.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
 
-2026-10-22 user clarification: **all 4 must agree for entry, with 3 already aligned and the 4th just flipping** (score 3 → 4). Exits: Supertrend trail (default) or any condition flips.
+2026-10-22 user clarification: **all 4 must agree for entry, with 3 already aligned and the 4th just flipping** (score 3 → 4); further clarified: several flipping on the same bar (e.g. 2 → 4) also counts, so entry = score becomes 4. Exits: Supertrend trail (default) or any condition flips.
 
 Interpretation choices: crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30).
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Status |
 |---|---|---|---|---|
-| E18 | NSE:NIFTY | All 4 true, with exactly 3 true on the previous bar (4th just flipped); before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
+| E18 | NSE:NIFTY | All 4 true on this bar, fewer than 4 on the previous bar (missing condition(s) just flipped in, e.g. 3 → 4 or 2 → 4); before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
 | E19 | NSE:NIFTY | Same as E18 | Any of the 4 conditions turns false; or 15:15 square-off | PENDING |
 | E20 | — | (dropped 2026-10-22: '4 of 4' is now the entry rule for all runs) | — | DROPPED |
 | E21 | NSE:BANKNIFTY | Same as the better of E18/E19 | Same as the better of E18/E19 | PENDING |
