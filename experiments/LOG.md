@@ -111,6 +111,8 @@ more than half the months profitable, both sides profitable.
 
 ## Strategy 3: Quad Confluence Breakout — QCB (`pine/dev/QuadConfluenceBreakout.dev.pine`, replaces `Confluence4_Intraday.dev.pine`)
 
+2026-10-22 user: test **stop loss at the entry candle's low** (new input, tag `+SL`) on the 60m interday candidates (E26–E28). Adds 3 variants (total 15).
+
 **Overall status: UNDER TEST — candidates E20i (60m interday, pivot exit) and E19i/E19ti (60m interday, Supertrend flip/trail); all 10 planned runs done (A41). Awaiting BANKNIFTY confirmation (E24, E25).** Built from the user's spec (2026-10-22): Supertrend (10,3) long, pivot R1 crossed, Bollinger 2 SD crossed up/down, RSI > 70; any 3 true → entry; any one flip → exit; intraday NIFTY.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
@@ -170,6 +172,9 @@ Interpretation choices: crosses treated as states (close beyond R1/S1 or the ban
 | E20 | NSE:NIFTY | Same | **Pivot**: close back below R1 / above S1; or 15:25 | 3 Pivot flips | DONE on 5m (A28) |
 | E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:25 | 4 Bollinger flips | DONE on 5m — FAIL (A29) |
 | E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:25 | 5 RSI flips | DONE on 5m — FAIL (A30) |
+| E26 | NSE:NIFTY 60m | E20i + **entry-candle-low stop** (`\|X3+SL\|INTER\|L\|60`) | pivot flip or candle-low stop | 3 + SL | PENDING |
+| E27 | NSE:NIFTY 60m | E19i + entry-candle-low stop (`\|X2+SL\|INTER\|L\|60`) | Supertrend flip or candle-low stop | 2 + SL | PENDING |
+| E28 | NSE:NIFTY 60m | E19ti + entry-candle-low stop (`\|X6+SL\|INTER\|L\|60`) | tighter of Supertrend line and candle low | 6 + SL | PENDING |
 | E24 | NSE:BANKNIFTY | **E19i unchanged** (all 4, X2 Supertrend flip, Interday, Long, 60m) — confirmation on unseen data | same | 2 | PENDING (priority) |
 | E25 | NSE:BANKNIFTY | **E20i unchanged** (all 4, X3 pivot flip, Interday, Long, 60m) — confirmation on unseen data | same | 3 | PENDING (priority) |
 | E23 | NSE:BANKNIFTY | Same | Best of E18–E22, unchanged | (best) | PENDING |

@@ -6,6 +6,7 @@
 //               PF fell from 1.64 (2009-17) to 1.16 (2023-26).
 //               E19i 60m INTERDAY (all 4, X2, long): 218 trades, PF 1.76 at
 //               0.02%/trade, +114%, DD -15%, no decay -> CANDIDATE (confirm E24).
+//               2026-10-22 user: optional entry-candle stop added (tag "+SL").
 //               E20i 60m INTERDAY (all 4, X3 pivot, long): 366 trades, PF 1.77,
 //               +74%, DD -5.0%, 16/18 years green -> CANDIDATE (confirm E25).
 // NAME:         Quad Confluence Breakout (QCB)
@@ -25,6 +26,8 @@
 //                        flips, 3 pivot flips, 4 Bollinger flips, 5 RSI flips
 //                        (2-5 = that condition turns from true to false),
 //                        6 Supertrend trailing stop.
+//               STOP   - optional stop at the entry (signal) candle's low for
+//                        longs / high for shorts, on top of the exit.
 //               MODE   - Intraday (no entries from 15:00, square-off 15:25)
 //                        or Interday (held overnight).
 //               SIDE   - Both / Long only / Short only.
@@ -60,6 +63,7 @@ modeIn   = input.string("Intraday", "Mode", options=["Intraday", "Interday"], gr
 sideIn   = input.string("Long only", "Side", options=["Both", "Long only", "Short only"], group=gX)
 sqHHMM   = input.int(1525, "Intraday square-off (IST hhmm, bar close)", minval=900, maxval=1530, group=gX)
 cutHHMM  = input.int(1500, "Intraday: no new entries from (IST hhmm)", minval=900, maxval=1530, group=gX)
+useSL    = input.bool(false, "Stop loss at entry-candle low (long) / high (short)", group=gX, tooltip="Entry candle = the signal bar whose close triggers the entry. Works together with any exit; with exit 6 the tighter of the two stops is used.")
 showTbl  = input.bool(true, "Show setup table", group=gX)
 
 // --- Condition 1: Supertrend (direction < 0 = uptrend in Pine v5) ---
@@ -126,8 +130,12 @@ if barstate.isfirst
     condTag := str.length(t) > 0 ? str.substring(t, 0, str.length(t) - 1) : "NONE"
 modeTag = isIntraday ? "INTRA" : "INTER"
 sideTag = sideIn == "Both" ? "LS" : sideIn == "Long only" ? "L" : "S"
-cfgTag  = "QCB " + condTag + "|X" + exitNo + "|" + modeTag + "|" + sideTag + "|" + timeframe.period
+cfgTag  = "QCB " + condTag + "|X" + exitNo + (useSL ? "+SL" : "") + "|" + modeTag + "|" + sideTag + "|" + timeframe.period
 exitTag = "X" + exitNo + " exit"
+
+// --- Entry-candle stop levels (set when the entry signal fires) ---
+var float slL = na
+var float slS = na
 
 // --- Execution ---
 if atSquareOff
@@ -141,16 +149,23 @@ else
     if strategy.position_size < 0 and exitShort
         strategy.close("Short", comment=exitTag)
     if longSig and wantLong and canEnter and strategy.position_size <= 0
+        slL := low
         strategy.entry("Long", strategy.long, comment="L " + cfgTag)
     else if shortSig and wantShort and canEnter and strategy.position_size >= 0
+        slS := high
         strategy.entry("Short", strategy.short, comment="S " + cfgTag)
 
-// --- Exit 6: Supertrend trailing stop, re-placed every bar at the current line ---
-if isTrail and not atSquareOff
-    if stLong
-        strategy.exit("Trail L", "Long", stop=stLine, comment="X6 ST trail")
-    if stShort
-        strategy.exit("Trail S", "Short", stop=stLine, comment="X6 ST trail")
+// --- Stops: exit 6 trails the Supertrend line; the optional entry-candle
+// stop is combined with it (the tighter level wins) or used on its own ---
+if not atSquareOff
+    if isTrail and stLong
+        strategy.exit("Stop L", "Long", stop=useSL and not na(slL) ? math.max(stLine, slL) : stLine, comment="X6 ST trail")
+    else if useSL and not na(slL)
+        strategy.exit("Stop L", "Long", stop=slL, comment="SL candle low")
+    if isTrail and stShort
+        strategy.exit("Stop S", "Short", stop=useSL and not na(slS) ? math.min(stLine, slS) : stLine, comment="X6 ST trail")
+    else if useSL and not na(slS)
+        strategy.exit("Stop S", "Short", stop=slS, comment="SL candle high")
 
 // --- Setup table ---
 var table cfg = table.new(position.top_right, 2, 6, bgcolor=color.new(color.gray, 20), border_width=1)
