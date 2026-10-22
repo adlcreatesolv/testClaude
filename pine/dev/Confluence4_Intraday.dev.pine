@@ -7,6 +7,7 @@
 //               2026-10-22 user: several flipping on the same bar (e.g.
 //               2 -> 4) also counts, so entry = score becomes 4.
 //               2026-10-22 user: five exit types (any flip + each indicator).
+//               2026-10-22 user: square-off moved to 15:25 IST.
 // NAME:         Confluence4 Intraday (Supertrend, Pivot R1/S1, Bollinger, RSI)
 // FILE:         pine/dev/Confluence4_Intraday.dev.pine
 // DERIVED FROM: User's strategy spec, 2026-10-22 (no original script):
@@ -23,7 +24,7 @@
 //               Exit types (input "Exit on"): 1 any condition flips
 //               (default), 2 Supertrend flips, 3 pivot flips, 4 Bollinger
 //               flips, 5 RSI flips; plus Supertrend trailing stop.
-//               Intraday: same-bar 15:15 IST square-off, no entries from
+//               Intraday: same-bar 15:25 IST square-off, no entries from
 //               15:00, stale-carry close. Fixed 1 unit, 1 pt round-trip cost.
 // INTERPRETATION (confirm with user): "crossed" is treated as a state (close
 //               is beyond R1 / the band), because one-bar cross events almost
@@ -45,7 +46,7 @@ rsiHi    = input.float(70, "RSI long above", group="Conditions")
 rsiLo    = input.float(30, "RSI short below", group="Conditions")
 exitMode = input.string("1 Any condition flips", "Exit on", options=["1 Any condition flips", "2 Supertrend flips", "3 Pivot flips", "4 Bollinger flips", "5 RSI flips", "Supertrend trail"], group="Entry / exit", tooltip="1: exit when any of the 4 turns false. 2-5: exit only when that one condition turns false. Supertrend trail: stop at the Supertrend line moved every bar (intrabar version of 2).")
 sideIn   = input.string("Both", "Side", options=["Both", "Long only", "Short only"], group="Entry / exit")
-sqHHMM   = input.int(1515, "Square-off (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
+sqHHMM   = input.int(1525, "Square-off (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
 cutHHMM  = input.int(1500, "No new entries from (IST hhmm, bar close)", minval=900, maxval=1530, group="Session")
 
 // --- Condition 1: Supertrend (direction < 0 = uptrend in Pine v5) ---

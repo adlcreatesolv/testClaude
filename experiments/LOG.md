@@ -115,17 +115,17 @@ more than half the months profitable, both sides profitable.
 
 2026-10-22: default exit changed to a Supertrend trailing stop at the user's request; in that mode entries require Supertrend to agree.
 
-2026-10-22 user clarification: **all 4 must agree for entry, with 3 already aligned and the 4th just flipping** (score 3 → 4); further clarified: several flipping on the same bar (e.g. 2 → 4) also counts, so entry = score becomes 4. Exits: five types decided 2026-10-22 (any flip + each indicator's flip, E18–E22).
+2026-10-22 user clarification: **all 4 must agree for entry, with 3 already aligned and the 4th just flipping** (score 3 → 4); further clarified: several flipping on the same bar (e.g. 2 → 4) also counts, so entry = score becomes 4. Exits: five types decided 2026-10-22 (any flip + each indicator's flip, E18–E22); square-off at 15:25 IST (bar close), entries still stop at 15:00.
 
 Interpretation choices: crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30).
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Symbol | Entry condition (Long / Short) | Exit condition | Exit on setting | Status |
 |---|---|---|---|---|---|
-| E18 | NSE:NIFTY | All 4 true on this bar, fewer than 4 on the previous bar; before 15:00 | **Any** of the 4 turns false; or 15:15 square-off | 1 Any condition flips | PENDING |
-| E19 | NSE:NIFTY | Same | **Supertrend** flips; or 15:15 | 2 Supertrend flips | PENDING |
-| E20 | NSE:NIFTY | Same | **Pivot**: close back below R1 / above S1; or 15:15 | 3 Pivot flips | PENDING |
-| E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:15 | 4 Bollinger flips | PENDING |
-| E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:15 | 5 RSI flips | PENDING |
+| E18 | NSE:NIFTY | All 4 true on this bar, fewer than 4 on the previous bar; before 15:00 | **Any** of the 4 turns false; or 15:25 square-off | 1 Any condition flips | PENDING |
+| E19 | NSE:NIFTY | Same | **Supertrend** flips; or 15:25 | 2 Supertrend flips | PENDING |
+| E20 | NSE:NIFTY | Same | **Pivot**: close back below R1 / above S1; or 15:25 | 3 Pivot flips | PENDING |
+| E21 | NSE:NIFTY | Same | **Bollinger**: close back inside the band; or 15:25 | 4 Bollinger flips | PENDING |
+| E22 | NSE:NIFTY | Same | **RSI**: back below 70 / above 30; or 15:25 | 5 RSI flips | PENDING |
 | E23 | NSE:BANKNIFTY | Same | Best of E18–E22, unchanged | (best) | PENDING |
 | — | — | Supertrend trailing stop kept as an extra option (intrabar version of E19); not in the plan | — | Supertrend trail | NOT PLANNED |
