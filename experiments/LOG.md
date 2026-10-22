@@ -117,10 +117,10 @@ more than half the months profitable, both sides profitable.
 
 Interpretation choices (to confirm): crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30); entry when the score first reaches ≥ 3; exit when any condition true at entry turns false.
 
-### Queue (fixed 2026-10-22; existing script options only, nothing new to be added)
+### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
 | ID | Plan | Status |
 |---|---|---|
-| E18 | 3 of 4 + Supertrend trail (defaults), NSE:NIFTY 5m and 15m, cost 1 pt | PENDING |
+| E18 | 3 of 4 + Supertrend trail (defaults), NSE:NIFTY, any timeframe (user's choice; record it), cost 1 pt | PENDING |
 | E19 | 3 of 4 + Exit on = Any entry condition flips (user's original exit rule) | PENDING |
 | E20 | 4 of 4 + Supertrend trail | PENDING |
-| E21 | Best of E18–E20 with settings unchanged, on unseen data: NSE:BANKNIFTY same timeframe | PENDING |
+| E21 | Best of E18–E20 with settings unchanged, on unseen data: NSE:BANKNIFTY | PENDING |
