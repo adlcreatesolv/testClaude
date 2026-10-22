@@ -118,9 +118,9 @@ more than half the months profitable, both sides profitable.
 Interpretation choices (to confirm): crosses treated as states (close beyond R1/S1 or the band); shorts mirror longs (Supertrend down, close < S1, close < lower band, RSI < 30); entry when the score first reaches ≥ 3; exit when any condition true at entry turns false.
 
 ### Queue (fixed 2026-10-22; existing script options only, nothing new to be added; chart timeframe not fixed, each run records the one used and each timeframe tried counts as a separate variant)
-| ID | Plan | Status |
-|---|---|---|
-| E18 | 3 of 4 + Supertrend trail (defaults), NSE:NIFTY, any timeframe (user's choice; record it), cost 1 pt | PENDING |
-| E19 | 3 of 4 + Exit on = Any entry condition flips (user's original exit rule) | PENDING |
-| E20 | 4 of 4 + Supertrend trail | PENDING |
-| E21 | Best of E18–E20 with settings unchanged, on unseen data: NSE:BANKNIFTY | PENDING |
+| ID | Symbol | Entry condition (Long / Short) | Exit condition | Status |
+|---|---|---|---|---|
+| E18 | NSE:NIFTY | Supertrend(10,3) agrees **and** ≥ 2 of: close > R1 / < S1, close > upper BB / < lower BB (20,2), RSI(14) > 70 / < 30 (score ≥ 3 of 4, first bar it gets there); before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
+| E19 | NSE:NIFTY | Any 3 of the 4 (Supertrend not required); before 15:00 | Any condition that was true at entry turns false; or 15:15 square-off | PENDING |
+| E20 | NSE:NIFTY | All 4 true; before 15:00 | Stop at Supertrend line, trailed every bar; or Supertrend flips; or 15:15 square-off | PENDING |
+| E21 | NSE:BANKNIFTY | Same as the best of E18–E20 | Same as the best of E18–E20 | PENDING |
